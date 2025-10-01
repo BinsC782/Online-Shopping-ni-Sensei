@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PowerPuffGirls Shopping</title>
+  <link rel="stylesheet" href="CSS/reset.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Left Section -->
+    <div class="left">
+      <img src="https://img.icons8.com/ios-filled/50/1e90ff/shopping-bag.png" alt="logo">
+      <h2>Welcome to <br><strong>PowerPuffGirls Shopping</strong></h2>
+      <p>Your one-stop shop for all your favorite products</p>
+    </div>
+
+    <!-- Right Section -->
+    <div class="right">
+      <div class="tab-buttons">
+        <button class="active" onclick="showLogin()">Login</button>
+        <button class="inactive" onclick="showRegister()">Register</button>
+      </div>
+      <form id="login-form" action="homepage.html">
+        <label>Username</label>
+        <input type="text" placeholder="Enter username">
+
+        <label>Password</label>
+        <input type="password" placeholder="Enter password">
+
+        <button type="submit" class="login-btn">Login</button>
+      </form>
+
+      <form id="register-form" action="homepage.html" style="display: none;">
+        <label>Username</label>
+        <input type="text" placeholder="Enter username">
+
+        <label>Email</label>
+        <input type="email" placeholder="Enter email">
+
+        <label>Password</label>
+        <input type="password" placeholder="Enter password">
+
+        <label>Confirm Password</label>
+        <input type="password" placeholder="Confirm password">
+
+        <button type="submit" class="login-btn">Register</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function showLogin() {
+      document.getElementById('login-form').style.display = 'block';
+      document.getElementById('register-form').style.display = 'none';
+      document.querySelector('.tab-buttons .active').classList.remove('active');
+      document.querySelector('.tab-buttons .inactive').classList.remove('inactive');
+      document.querySelector('.tab-buttons button:first-child').classList.add('active');
+      document.querySelector('.tab-buttons button:last-child').classList.add('inactive');
+    }
+    function showRegister() {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('register-form').style.display = 'block';
+      document.querySelector('.tab-buttons .active').classList.remove('active');
+      document.querySelector('.tab-buttons .inactive').classList.remove('inactive');
+      document.querySelector('.tab-buttons button:first-child').classList.add('inactive');
+      document.querySelector('.tab-buttons button:last-child').classList.add('active');
+    }
+  </script>
+</body>
+</html>
