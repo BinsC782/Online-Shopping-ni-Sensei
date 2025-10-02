@@ -1,3 +1,81 @@
+// Renders products fetched from the backend into the .products grid.
+function renderProductsFromAPI(list) {
+    const grid = document.querySelector('.products');
+    if (!grid || !Array.isArray(list) || list.length === 0) return;
+    grid.innerHTML = '';
+
+    list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+
+        // Prefer explicit image from API if present, otherwise guess by product name
+        const explicit = p.image ? `Photos/${p.image}` : null;
+        const assumedJpg = `Photos/${p.name}.jpg`;
+        const assumedPng = `Photos/${p.name}.png`;
+
+        const imgSrc = explicit || assumedJpg;
+
+        card.innerHTML = `
+          <img src="${imgSrc}" alt="${p.name}" onerror="this.onerror=null; this.src='${assumedPng}';" />
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <p>$${Number(p.price).toFixed(2)}</p>
+            <span>★★★★★</span>
+          </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// (Re)attach click handlers to every .product-card to open the modal and wire its buttons.
+function attachProductCardHandlers() {
+    const modal = document.getElementById('product-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalTitle = document.getElementById('modal-title');
+    const modalPrice = document.getElementById('modal-price');
+    const modalRating = document.getElementById('modal-rating');
+    const modalAddToCart = document.getElementById('modal-add-to-cart');
+    const modalBuyNow = document.getElementById('modal-buy-now');
+    const qtyMinus = document.getElementById('qty-minus');
+    const qtyPlus = document.getElementById('qty-plus');
+    const qtyValue = document.getElementById('qty-value');
+
+    let currentQty = 1;
+
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const img = this.querySelector('img');
+            const title = this.querySelector('h3').textContent;
+            const priceText = this.querySelector('p').textContent;
+            const rating = this.querySelector('span').textContent;
+            const price = parseFloat(priceText.replace('$', ''));
+
+            const id = title.toLowerCase().replace(/\s+/g, '-');
+
+            modalImage.src = img.src;
+            modalTitle.textContent = title;
+            modalPrice.textContent = priceText;
+            modalRating.textContent = rating;
+
+            currentQty = 1;
+            qtyValue.textContent = currentQty;
+
+            modalAddToCart.onclick = function() {
+                for (let i = 0; i < currentQty; i++) {
+                    addToCart({id: id, name: title, price: price, image: img.src});
+                }
+                modal.style.display = 'none';
+            };
+
+            modalBuyNow.onclick = function() {
+                alert('Proceeding to checkout!');
+                modal.style.display = 'none';
+            };
+
+            modal.style.display = 'block';
+        });
+    });
+}
 
 let cart = [];
 
@@ -114,6 +192,28 @@ document.addEventListener('DOMContentLoaded', function() {
     displayCart();
     console.log('Cart initialized');
 
+    // Step 1: Try to fetch products to build a name->id map (no UI change; safe if server is down)
+    (async () => {
+        try {
+            const res = await fetch('/api/products');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const list = await res.json();
+            // Expose for later steps (checkout wiring)
+            window.productsList = list;
+            window.nameToId = Object.fromEntries(list.map(p => [String(p.name).toLowerCase(), p.id]));
+            console.log('Products loaded for mapping:', window.nameToId);
+
+            // Step 3: If we have products, render them into the grid
+            renderProductsFromAPI(list);
+            // After rendering, (re)attach modal handlers to the new cards
+            attachProductCardHandlers();
+        } catch (e) {
+            // Do not crash the page if server not running; keep client-only behavior
+            window.productsList = [];
+            window.nameToId = {};
+            console.warn('Products API unavailable; staying client-only. Reason:', e.message);
+        }
+    })();
 
     const viewCloseBtn = document.querySelector('.cart-header .close-btn');
     if (viewCloseBtn) {
@@ -128,7 +228,57 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Step 2: On the checkout page, POST the order to the Java backend if mapping is available
+    const isCheckoutPage = location.pathname.endsWith('/checkout.html') || location.pathname.endsWith('checkout.html');
+    if (isCheckoutPage) {
+        const checkoutBtn = document.querySelector('.checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.onclick = async function (e) {
+                e.preventDefault();
+                try {
+                    const username = localStorage.getItem('username') || 'guest';
+                    const map = window.nameToId || {};
 
+                    // Build compact items string: "id1xqty1;id2xqty2"
+                    const compact = cart
+                        .map(item => {
+                            const pid = map[String(item.name).toLowerCase()];
+                            if (!pid) return null; // skip items that cannot be resolved
+                            return `${pid}x${item.quantity}`;
+                        })
+                        .filter(Boolean)
+                        .join(';');
+
+                    if (!compact) {
+                        alert('Cannot place order: product IDs could not be resolved.');
+                        return;
+                    }
+
+                    const res = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: username, items: compact })
+                    });
+
+                    if (!res.ok) {
+                        const msg = await res.text();
+                        alert('Checkout failed: ' + msg);
+                        return;
+                    }
+
+                    const data = await res.json();
+                    alert('Order placed! ID: ' + data.orderId);
+                    cart = [];
+                    saveCart();
+                    displayCart();
+                } catch (err) {
+                    console.error('Checkout error:', err);
+                    alert('Network error during checkout or server unavailable.');
+                }
+            };
+        }
+    }
+    // Modal elements for product details
     const modal = document.getElementById('product-modal');
     const closeBtn = document.querySelector('.close-btn');
     const modalImage = document.getElementById('modal-image');
@@ -164,42 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
 
-    document.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const img = this.querySelector('img');
-            const title = this.querySelector('h3').textContent;
-            const priceText = this.querySelector('p').textContent;
-            const rating = this.querySelector('span').textContent;
-            const price = parseFloat(priceText.replace('$', ''));
-
-            const id = title.toLowerCase().replace(/\s+/g, '-');
-
-            modalImage.src = img.src;
-            modalTitle.textContent = title;
-            modalPrice.textContent = priceText;
-            modalRating.textContent = rating;
-
-  
-            currentQty = 1;
-            qtyValue.textContent = currentQty;
-
-     
-            modalAddToCart.onclick = function() {
-                for (let i = 0; i < currentQty; i++) {
-                    addToCart({id: id, name: title, price: price, image: img.src});
-                }
-                modal.style.display = 'none';
-            };
-
- 
-            modalBuyNow.onclick = function() {
-                alert('Proceeding to checkout!');
-                modal.style.display = 'none';
-            };
-
-            modal.style.display = 'block';
-        });
-    });
+    // Attach modal handlers to current product cards
+    attachProductCardHandlers();
 
 
     closeBtn.onclick = function() {

@@ -11,6 +11,8 @@ public class Product {
     private String sellerLocation;
     private double rating;
     private String reviews;
+    // Optional image filename (e.g., "Attack Shark Keyboard.jpg") relative to web/Photos/
+    private String image;
 
     public Product(int id, String name, double price, String description, String category, int stock,
                    String sellerName, String sellerLocation, double rating, String reviews) {
@@ -93,7 +95,6 @@ public class Product {
     public double getRating() {
         return rating;
     }
-
     public void setRating(double rating) {
         this.rating = rating;
     }
@@ -104,5 +105,13 @@ public class Product {
 
     public void setReviews(String reviews) {
         this.reviews = reviews;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }

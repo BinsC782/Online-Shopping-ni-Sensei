@@ -3,6 +3,7 @@ package com.shopping.data;
 import com.shopping.model.Product;
 import com.shopping.model.User;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,15 @@ public class FileHandler {
     }
 
     public static List<String> loadProducts() {
-        return loadData(PRODUCT_FILE); // returns data in List of <String> characters 
+        List<String> products = loadData(PRODUCT_FILE);
+        if (products.isEmpty()) {
+            // Add sample products if file is empty
+            products.add("1,Keyboard,59.99,Mechanical gaming keyboard,Electronics,50,GameGear,Manila,4.5,Great keyboard!");
+            products.add("2,Mouse,29.99,Wireless gaming mouse,Electronics,75,GameGear,Manila,4.2,Very responsive");
+            products.add("3,Headset,99.99,Noise-cancelling headset,Electronics,30,AudioPro,Manila,4.8,Excellent sound quality");
+            saveProducts(products);
+        }
+        return products;
     }
 
     /**
@@ -44,44 +53,98 @@ public class FileHandler {
         
         // Process each line from the file
         for (String line : productStrings) {
-            // Split the CSV line into individual fields
-            String[] parts = line.split(",");
-            
-            // Check if we have at least the required fields (first 6)
-            if (parts.length >= 6) {
+            // Parse CSV with support for quoted fields containing commas
+            java.util.List<String> fields = parseCsvLine(line);
+
+            // Expect at least the required fields (first 6)
+            if (fields.size() >= 6) {
                 try {
-                    // Parse required fields (first 6)
-                    int id = Integer.parseInt(parts[0]);         // Product ID (must be integer)
-                    String name = parts[1];                      // Product name
-                    double price = Double.parseDouble(parts[2]); // Product price
-                    String description = parts[3];               // Product description
-                    String category = parts[4];                  // Product category
-                    int stock = Integer.parseInt(parts[5]);      // Available stock count
-                    
-                    // Parse optional fields with default values if not present
-                    String sellerName = parts.length > 6 ? parts[6] : "Default Seller";
-                    String sellerLocation = parts.length > 7 ? parts[7] : "Unknown Location";
-                    double rating = parts.length > 8 ? Double.parseDouble(parts[8]) : 0.0;
-                    String reviews = parts.length > 9 ? parts[9] : "No reviews yet";
-                    
-                    // Create new Product object and add to the list
-                    products.add(new Product(id, name, price, description, category, stock,
-                                          sellerName, sellerLocation, rating, reviews));
-                                          
+                    int id = Integer.parseInt(fields.get(0).trim());
+                    String name = fields.get(1).trim();
+                    double price = Double.parseDouble(fields.get(2).trim());
+                    String description = fields.get(3).trim();
+                    String category = fields.get(4).trim();
+                    int stock = Integer.parseInt(fields.get(5).trim());
+
+                    String sellerName = fields.size() > 6 ? fields.get(6).trim() : "Default Seller";
+                    String sellerLocation = fields.size() > 7 ? fields.get(7).trim() : "Unknown Location";
+                    double rating = 0.0;
+                    if (fields.size() > 8) {
+                        try { rating = Double.parseDouble(fields.get(8).trim()); } catch (NumberFormatException ignore) {}
+                    }
+                    String reviews = fields.size() > 9 ? fields.get(9).trim() : "No reviews yet";
+
+                    Product prod = new Product(id, name, price, description, category, stock,
+                                             sellerName, sellerLocation, rating, reviews);
+                    // Optional image filename at index 10
+                    if (fields.size() > 10) {
+                        String image = fields.get(10).trim();
+                        if (!image.isEmpty()) prod.setImage(image);
+                    }
+                    products.add(prod);
                 } catch (NumberFormatException e) {
-                    // Skip any lines with invalid number formats (e.g., non-numeric ID or price)
-                    System.err.println("Skipping invalid product line: " + line);
+                    // If still malformed, skip quietly to reduce noise, but keep a concise hint
+                    System.err.println("Skipping invalid product line (number format): " + truncate(line));
                 }
             } else {
-                // Skip lines that don't have enough fields
-                System.err.println("Skipping incomplete product line: " + line);
+                // Skip lines that don't have enough fields (concise log)
+                System.err.println("Skipping incomplete product line: " + truncate(line));
             }
         }
         return products;
     }
 
+    /**
+     * Minimal CSV parser supporting double-quoted fields with commas and escaped quotes ("").
+     * No external dependencies.
+     */
+    private static java.util.List<String> parseCsvLine(String line) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (line == null) return out;
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"') {
+                    // Handle escaped quote ""
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                        sb.append('"');
+                        i++; // skip next quote
+                    } else {
+                        inQuotes = false; // closing quote
+                    }
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                if (c == '"') {
+                    inQuotes = true;
+                } else if (c == ',') {
+                    out.add(sb.toString());
+                    sb.setLength(0);
+                } else {
+                    sb.append(c);
+                }
+            }
+        }
+        out.add(sb.toString()); // last field
+        return out;
+    }
+
+    private static String truncate(String s) {
+        if (s == null) return "";
+        return s.length() > 120 ? s.substring(0, 120) + "..." : s;
+    }
+
     public static List<String> loadUsers() {
-        return loadData(USER_FILE);
+        List<String> users = loadData(USER_FILE);
+        if (users.isEmpty()) {
+            // Add a default admin user if no users exist
+            users.add("admin,admin123,admin@example.com");
+            saveUsers(users);
+        }
+        return users;
     }
 
     public static List<String> loadOrders() {
@@ -90,12 +153,26 @@ public class FileHandler {
 
     private static List<String> loadData(String fileName) {
         List<String> data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+        File file = new File(fileName);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                System.err.println("Error creating file: " + fileName);
+                e.printStackTrace();
+            }
+            return data;
+        }
+        
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName, StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
-                data.add(line);
+                if (!line.trim().isEmpty()) {
+                    data.add(line);
+                }
             }
         } catch (IOException e) {
+            System.err.println("Error reading file: " + fileName);
             e.printStackTrace();
         }
         return data;
@@ -128,6 +205,10 @@ public class FileHandler {
                          product.getSellerLocation() + "," + 
                          product.getRating() + "," +
                          product.getReviews();
+            // Append optional image filename if present
+            if (product.getImage() != null && !product.getImage().isEmpty()) {
+                line += "," + product.getImage();
+            }
                          
             // Add the formatted string to our list
             productStrings.add(line);
@@ -208,5 +289,10 @@ public class FileHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean removeProduct(Product p) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'removeProduct'");
     }
 }
