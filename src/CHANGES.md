@@ -86,6 +86,21 @@
 3. Visit `/api/products` to verify JSON output, then open `/homepage.html`.
 4. Use the UI to add items and check out. Orders append to `src/orders.txt` and stock decrements in `src/products.txt`.
 
+## 2025-10-05 - Modal and Animation Updates
+
+### Added
+- Added "DO NOT EVER REMOVE, ONLY MODIFY" comments to critical animation and modal-related CSS properties in `homepage.css`
+- Added protective comments to core modal functionality in `main.js` to prevent accidental removal during refactoring
+  - Modal initialization and event listeners
+  - Modal show/hide functionality
+  - Add to cart functionality
+  - Buy now functionality
+  - Modal close handlers (button and outside click)
+
+### Modified
+- Improved code documentation for better maintainability
+- Added notes about core functionality that should be preserved during refactoring
+
 ## Next Steps (optional)
 
 - Wire `web/index.html` forms to `POST /api/auth/login` and `POST /api/users`, store `localStorage.username`.

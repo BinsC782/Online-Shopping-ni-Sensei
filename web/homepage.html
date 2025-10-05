@@ -38,15 +38,8 @@
   </nav>
 
   <!-- Products Grid -->
-  <section class="products">
-    <div class="product-card">
-      <img src="Photos/Attack Shark Keyboard.png" alt="keyboard">
-      <div class="product-info">
-        <h3>Attack Shark Keyboard</h3>
-        <p>$19.99</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
+  <section class="products" id="products-container">
+    <!-- Products will be dynamically loaded here -->
     <div class="product-card">
       <img src="Photos/GarudaHawk.jpg" alt="mouse">
       <div class="product-info">
@@ -166,6 +159,7 @@
     <div class="product-modal">
       <button class="close-btn">&times;</button>
       <div class="modal-content">
+        <div class="product-id" id="modal-product-id">ID: </div>
         <div class="product-image">
           <img id="modal-image" src="" alt="Product Image">
         </div>

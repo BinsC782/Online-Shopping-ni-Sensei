@@ -1,4 +1,4 @@
-package com.shopping.handlers;
+package com.shopping.handler;
 
 import com.shopping.ServerMain;
 import com.sun.net.httpserver.HttpExchange;

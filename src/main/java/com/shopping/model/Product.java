@@ -1,7 +1,8 @@
 package com.shopping.model;
 
 public class Product {
-    private int id;
+    private static final int ID_LENGTH = 6;
+    private String id;
     private String name;
     private double price;
     private String description;
@@ -14,8 +15,25 @@ public class Product {
     // Optional image filename (e.g., "Attack Shark Keyboard.jpg") relative to web/Photos/
     private String image;
 
-    public Product(int id, String name, double price, String description, String category, int stock,
-                   String sellerName, String sellerLocation, double rating, String reviews) {
+    // Simple constructor for basic product creation
+    public Product(String id, String name, double price, int stock) {
+        validateProductId(id);
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        this.description = "";
+        this.category = "";
+        this.sellerName = "";
+        this.sellerLocation = "";
+        this.rating = 0.0;
+        this.reviews = "";
+    }
+    
+    // Full constructor with all fields
+    public Product(String id, String name, double price, String description, String category, int stock,
+                  String sellerName, String sellerLocation, double rating, String reviews) {
+        validateProductId(id);
         this.id = id;
         this.name = name;
         this.price = price;
@@ -28,11 +46,18 @@ public class Product {
         this.reviews = reviews;
     }
 
-    public int getId() {
+    private void validateProductId(String id) {
+        if (id == null || id.length() != ID_LENGTH || !id.matches("\\d{" + ID_LENGTH + "}")) {
+            throw new IllegalArgumentException("Product ID must be a " + ID_LENGTH + "-digit number");
+        }
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
+        validateProductId(id);
         this.id = id;
     }
 

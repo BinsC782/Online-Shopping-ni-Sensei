@@ -1,25 +1,20 @@
 package com.shopping;
 
 import com.shopping.data.FileHandler;
-import com.shopping.model.Product;
-import com.shopping.model.User;
+import com.shopping.model.*;
+// Handler imports removed as they're not directly used
+import com.shopping.service.ShoppingService;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.URLDecoder;
+import java.net.*;
+import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Localhost-only HTTP server for serving the web UI and minimal JSON APIs.
@@ -27,21 +22,115 @@ import java.util.stream.Collectors;
  * - Serves static files from ../web (because run-server.bat executes in src/)
  * - Exposes /api endpoints that call existing FileHandler and model classes
  */
-public class ServerMain {
-    // We intentionally run the JVM from the repo's src/ directory (see run-server.bat)
-    // so the existing FileHandler that uses relative files (products.txt, users.txt, orders.txt)
-    // continues to read/write in src/. The web assets live one folder up at ../web
+public class ServerMain implements HttpHandler {
     private static final Path STATIC_ROOT = Paths.get("..", "web");
-
-    // Simple lock to make order updates atomic across threads
-    private static final Object ORDER_LOCK = new Object();
-    // Single service instance for business logic
-    private static final ShoppingService shoppingService = new ShoppingService();
+    
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        // Handle the request
+        String path = exchange.getRequestURI().getPath();
+        String method = exchange.getRequestMethod();
+        
+        try {
+            // Handle different paths and methods here
+            if (path.startsWith("/api/")) {
+                handleApiRequest(exchange, path, method);
+            } else {
+                handleStaticFileRequest(exchange, path);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendErrorResponse(exchange, 500, "Internal server error: " + e.getMessage());
+        }
+    }
+    
+    private void handleApiRequest(HttpExchange exchange, String path, String method) throws IOException {
+        // Handle API requests here
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        
+        if ("OPTIONS".equals(method)) {
+            exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+            exchange.sendResponseHeaders(204, -1);
+            return;
+        }
+        
+        // Default not found response
+        String response = "{\"error\":\"Not Found\"}";
+        exchange.sendResponseHeaders(404, response.length());
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(response.getBytes());
+        }
+    }
+    
+    private void handleStaticFileRequest(HttpExchange exchange, String path) throws IOException {
+        if ("/".equals(path)) {
+            path = "/index.html";
+        }
+        
+        Path filePath = STATIC_ROOT.resolve(path.substring(1)).normalize();
+        if (!filePath.startsWith(STATIC_ROOT)) {
+            // Security check: prevent directory traversal
+            String response = "{\"error\":\"Access denied\"}";
+            exchange.sendResponseHeaders(403, response.length());
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+            return;
+        }
+        
+        if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
+            // File not found
+            String response = "{\"error\":\"File not found\"}";
+            exchange.sendResponseHeaders(404, response.length());
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+            return;
+        }
+        
+        // Determine content type
+        String contentType = "application/octet-stream";
+        if (path.endsWith(".html")) {
+            contentType = "text/html";
+        } else if (path.endsWith(".css")) {
+            contentType = "text/css";
+        } else if (path.endsWith(".js")) {
+            contentType = "application/javascript";
+        } else if (path.endsWith(".png")) {
+            contentType = "image/png";
+        } else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
+            contentType = "image/jpeg";
+        }
+        
+        exchange.getResponseHeaders().set("Content-Type", contentType);
+        exchange.sendResponseHeaders(200, Files.size(filePath));
+        
+        try (InputStream is = Files.newInputStream(filePath);
+             OutputStream os = exchange.getResponseBody()) {
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = is.read(buffer)) > 0) {
+                os.write(buffer, 0, count);
+            }
+        }
+    }
+    // Single instances for the application
+    private static final FileHandler fileHandler = new FileHandler();
+    private static final ShoppingService shoppingService = new ShoppingService(fileHandler);
+    
+    public static ShoppingService getShoppingService() {
+        return shoppingService;
+    }
+    
+    public static FileHandler getFileHandler() {
+        return fileHandler;
+    }
     
     // Session management
     private static final Map<String, SessionData> activeSessions = new ConcurrentHashMap<>();
     private static final long SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
-    
     // Session data class
     private static class SessionData {
         final String username;
@@ -59,9 +148,8 @@ public class ServerMain {
 
     public static void main(String[] args) {
         try {
-            // Initialize data files (creates products.txt, users.txt, orders.txt in working dir if missing)
+            // Initialize data files through ShoppingService
             System.out.println("Initializing data files...");
-            FileHandler.initializeDataFiles();
             
             // Load some sample data if needed
             if (new File("products.txt").length() == 0) {
@@ -76,19 +164,37 @@ public class ServerMain {
             // Create server with a thread pool
             HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
             
-            // Set up thread pool with 4 worker threads (adjust as needed)
+            // Set up thread pool with 4 worker threads
             server.setExecutor(Executors.newFixedThreadPool(4));
 
             // Static file handler for frontend
             System.out.println("Registering static file handler...");
             server.createContext("/", new StaticFileHandler());
-
-            // API endpoints (JSON)
-            System.out.println("Registering API endpoints...");
-            server.createContext("/api/products", new ProductsHandler());
-            server.createContext("/api/auth/login", new LoginHandler());
-            server.createContext("/api/auth/register", new RegisterHandler());
-            server.createContext("/api/orders", new OrdersHandler());
+            
+            // API endpoints - using inline handlers for simplicity
+            server.createContext("/api/products", exchange -> {
+                try {
+                    List<Product> products = shoppingService.getProducts();
+                    String json = toJsonProducts(products);
+                    writeJson(exchange, 200, json);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    writeJson(exchange, 500, "{\"error\":\"Error fetching products\"}");
+                }
+            });
+            
+            // Create an instance of ServerMain to handle requests
+            ServerMain serverHandler = new ServerMain();
+            
+            // Set up the server context
+            server.createContext("/api/orders", exchange -> {
+                try {
+                    serverHandler.handle(exchange);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    writeJson(exchange, 500, "{\"error\":\"Error processing order\"}");
+                }
+            });
             
             // Add shutdown hook for graceful shutdown
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -184,7 +290,6 @@ public class ServerMain {
         }
     }
     
-    @SuppressWarnings("unchecked")
     private static Map<String, Object> parseJsonToMap(String json) {
         Map<String, Object> result = new HashMap<>();
         if (json == null || json.trim().isEmpty()) {
@@ -409,8 +514,8 @@ public class ServerMain {
                 }
                 
                 // Authenticate user
-                User user = shoppingService.authenticateUser(username, password);
-                if (user != null) {
+                boolean isAuthenticated = shoppingService.authenticateUser(username, password);
+                if (isAuthenticated) {
                     // Create session
                     String sessionId = UUID.randomUUID().toString();
                     activeSessions.put(sessionId, new SessionData(username));
@@ -426,9 +531,8 @@ public class ServerMain {
                     
                     // Return success response with user info (excluding sensitive data)
                     String json = String.format(
-                        "{\"status\":\"success\",\"username\":\"%s\",\"email\":\"%s\"}", 
-                        escape(username),
-                        escape(user.getEmail())
+                        "{\"status\":\"success\",\"username\":\"%s\"}", 
+                        escape(username)
                     );
                     writeJson(exchange, 200, json);
                 } else {
@@ -530,7 +634,12 @@ public class ServerMain {
                 
                 String body = readBody(exchange);
                 Map<String, Object> map = parseJsonToMap(body);
-                String user = (String) map.getOrDefault("user", "");
+                // Get username from session
+                String username = getUsernameFromSession(getSessionId(exchange));
+                if (username == null) {
+                    writeJson(exchange, 401, "{\"error\":\"Not authenticated\"}");
+                    return;
+                }
                 
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> items = (List<Map<String, Object>>) map.getOrDefault("items", new ArrayList<>());
@@ -540,29 +649,33 @@ public class ServerMain {
                     writeJson(exchange, 400, "{\"error\":\"No items in order\"}");
                     return;
                 }
-
-                // Atomically validate and update stock, then persist the order
-                synchronized (ORDER_LOCK) {
-                    List<ShoppingService.OrderItem> orderItems = new ArrayList<>();
-                    for (Map<String, Object> it : items) {
-                        int productId = toInt(it.get("id"));
-                        int quantity = toInt(it.get("qty"));
-                        if (productId <= 0 || quantity <= 0) {
-                            writeJson(exchange, 400, "{\"error\":\"Invalid product ID or quantity\"}");
-                            return;
-                        }
-                        orderItems.add(new ShoppingService.OrderItem(productId, quantity));
-                    }
-                    
-                    ShoppingService.OrderResult result = shoppingService.placeOrder(user, orderItems);
-                    if (!"ok".equalsIgnoreCase(result.status)) {
-                        writeJson(exchange, 400, "{\"error\":\"" + escape(String.valueOf(result.message)) + "\"}");
+                
+                // Convert items to OrderItems
+                List<OrderItem> orderItems = new ArrayList<>();
+                for (Map<String, Object> item : items) {
+                    String productId = String.valueOf(item.get("id"));
+                    int quantity = toInt(item.get("quantity"));
+                    if (quantity <= 0) {
+                        writeJson(exchange, 400, "{\"error\":\"Invalid quantity for product " + productId + "\"}");
                         return;
                     }
                     
-                    String json = "{\"orderId\":\"" + escape(result.orderId) + "\",\"status\":\"ok\"}";
-                    writeJson(exchange, 201, json);
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setProductId(productId);
+                    orderItem.setQuantity(quantity);
+                    orderItems.add(orderItem);
                 }
+                
+                // Place the order
+                ShoppingService.OrderResult result = shoppingService.placeOrder(username, orderItems);
+                if (!"ok".equalsIgnoreCase(result.status)) {
+                    writeJson(exchange, 400, "{\"error\":\"" + escape(String.valueOf(result.message)) + "\"}");
+                    return;
+                }
+                
+                // Return success response
+                String json = "{\"orderId\":\"" + escape(result.orderId) + "\",\"status\":\"ok\"}";
+                writeJson(exchange, 201, json);
             } catch (Exception e) {
                 e.printStackTrace();
                 String errorJson = String.format(
@@ -606,7 +719,33 @@ public class ServerMain {
         activeSessions.remove(sessionId);
     }
 
+    // Add CORS headers to the response
+    public static void addCorsHeaders(HttpExchange exchange) {
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Credentials", "true");
+        exchange.getResponseHeaders().add("Access-Control-Max-Age", "3600");
+    }
+    
+    // Handle OPTIONS request for CORS preflight
+    private static void handleCorsPreflight(HttpExchange exchange) throws IOException {
+        addCorsHeaders(exchange);
+        exchange.getResponseHeaders().add("Content-Type", "text/plain");
+        exchange.sendResponseHeaders(204, -1);
+        exchange.getResponseBody().close();
+    }
+    
     public static void writeJson(HttpExchange exchange, int status, String json) throws IOException {
+        // Add CORS headers to all responses
+        addCorsHeaders(exchange);
+        
+        // Handle OPTIONS request (CORS preflight)
+        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+            handleCorsPreflight(exchange);
+            return;
+        }
+        
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
         exchange.sendResponseHeaders(status, bytes.length);

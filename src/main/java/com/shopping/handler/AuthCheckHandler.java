@@ -1,10 +1,8 @@
-package com.shopping.handlers;
+package com.shopping.handler;
 
 import com.shopping.ServerMain;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.json.JSONObject;
-
 import java.io.IOException;
 
 public class AuthCheckHandler implements HttpHandler {
@@ -21,13 +19,14 @@ public class AuthCheckHandler implements HttpHandler {
             String sessionId = ServerMain.getSessionId(exchange);
             String username = ServerMain.getUsernameFromSession(sessionId);
             
-            JSONObject response = new JSONObject();
-            response.put("authenticated", username != null);
-            if (username != null) {
-                response.put("username", username);
-            }
+            // Build JSON response using string concatenation
+            String response = String.format(
+                "{\"authenticated\":%b,\"username\":\"%s\"}",
+                username != null,
+                username != null ? username.replace("\"", "\\\"") : ""
+            );
             
-            ServerMain.sendJsonResponse(exchange, 200, response.toString());
+            ServerMain.sendJsonResponse(exchange, 200, response);
         } catch (Exception e) {
             ServerMain.sendErrorResponse(exchange, 500, "Internal server error");
         }
