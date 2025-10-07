@@ -1,6 +1,6 @@
 # Compiled class files
-bin/
-bin-test/
+target/
+*.class
 
 # Log files
 *.log
@@ -14,7 +14,7 @@ bin-test/
 *.tar.gz
 *.rar
 
-# virtual machine crash logs
+# Virtual machine crash logs
 hs_err_pid*
 
 # IDE specific files
@@ -37,12 +37,10 @@ Thumbs.db
 *.sql
 *.sqlite
 
-# Java class files
-*.class
-
 # Build output
-target/
 build/
+bin/
+out/
 
 # Logs
 logs/
@@ -67,3 +65,35 @@ temp/
 
 # JUnit 5
 junit-platform-console-standalone.jar
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# NetBeans
+nb-configuration.xml
+
+# Visual Studio Code
+.vscode/
+
+# OS specific
+.DS_Store
+Thumbs.db
