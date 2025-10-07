@@ -1,23 +1,129 @@
 # Online Shopping App
 
+A simple web-based shopping application with Java backend and HTML/CSS/JavaScript frontend.
 
-## [09/18/2025] - OnlineShopping Beta V0.1 - ChewieYodayahh commit 
-- Simple CLI application that allows users to register, login, and browse products.
-- Disabled Swing GUI features until further consideration to develop into a Web Application (integrating both HTML, CSS, and JavaScript + Java as backend). 
-- Refer always to the Gantt Chart for new tasks religiously, and coordinate with the Group Chat
-hfh
+## Features
+- User registration and authentication
+- Product browsing and search
+- Shopping cart functionality
+- Order management
+- Responsive web interface
 
+## Prerequisites
+- Java 11 or later
+- Web browser (Chrome, Firefox, Edge, etc.)
 
+## Getting Started
 
-### Folder Structure - 
-This is only the introduction so you may understand the rest. After reading this, please also hover to Project Structure to see the actual folder structure.
-- Data folder (package com.shoppinig.data) is used to store data to .txt files, manage data persistence, and update. CRUD
-- Model folder (package com.shopping.model) is most important. It is the core business logic contains objects such as Products, Users, Orders, etc.
-- UI folder (package com.shopping.ui) is used to create the Swing GUI user interface. It is not yet launched by default. There are also additional business logic such as CartUI, CheckOutUI, ProductUI, LoginUI for user-authentication, and MainProgramUI for the main frame container. 
+### Building the Application
 
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/online-shopping-app.git
+   cd online-shopping-app
+   ```
 
-## Overview
-The Online Shopping App is a Java-based application that simulates an online shopping experience. It includes a console (CLI) application as the primary entrypoint, as well as a set of Swing UI components (login, product browsing, cart, and checkout) that are compiled but not yet launched by default.
+2. **Build the application**
+   ```bash
+   build.bat
+   ```
+   This will compile all Java source files and place the compiled classes in the `bin` directory.
+
+### Running the Application
+
+1. **Start the server**
+   ```bash
+   run.bat
+   ```
+   The server will start on `http://localhost:8080` by default.
+
+2. **Access the application**
+   Open your web browser and navigate to:
+   ```
+   http://localhost:8080
+   ```
+
+### Running Tests
+
+To run the test suite:
+```bash
+test.bat
+```
+
+### Cleaning Build Artifacts
+
+To clean up compiled files and temporary directories:
+```bash
+clean.bat
+```
+
+## Project Structure
+
+```
+/
+├── bin/                    # Compiled Java classes
+├── bin-test/               # Compiled test classes
+├── src/
+│   ├── main/
+│   │   ├── java/          # Java source files
+│   │   │   └── com/shopping/
+│   │   │       ├── config/ # Configuration classes
+│   │   │       ├── data/   # Data access layer
+│   │   │       ├── model/  # Data models
+│   │   │       ├── util/   # Utility classes
+│   │   │       └── ServerMain.java  # Main server class
+│   │   └── resources/     # Resource files
+│   └── test/              # Test source files
+├── web/                   # Frontend files
+│   ├── css/               # Stylesheets
+│   ├── js/                # JavaScript files
+│   └── *.html             # HTML pages
+├── build.bat              # Build script
+├── run.bat                # Run script
+├── test.bat               # Test script
+└── clean.bat              # Clean script
+```
+
+## Configuration
+
+Server configuration can be modified by setting environment variables or creating an `app.properties` file in the root directory.
+
+Example `app.properties`:
+```properties
+# Server configuration
+server.port=8080
+server.host=127.0.0.1
+
+# File paths
+users.file=users.txt
+products.file=products.txt
+orders.file=orders.txt
+
+# Security
+jwt.secret=your-secret-key
+jwt.expiration.ms=86400000  # 24 hours
+
+# CORS (comma-separated list of allowed origins)
+cors.allowed.origins=http://localhost:8080,http://127.0.0.1:8080
+```
+
+## Development
+
+### Adding New Features
+1. Create a new branch for your feature
+2. Make your changes
+3. Add tests for your changes
+4. Run tests to ensure everything works
+5. Submit a pull request
+
+### Debugging
+- Server logs are output to the console
+- Check the browser's developer console for frontend errors
+- Use the browser's network tab to inspect API requests/responses
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Features
 - User authentication and management

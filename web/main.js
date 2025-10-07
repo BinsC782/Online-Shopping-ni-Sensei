@@ -403,52 +403,65 @@ async function saveOrderToFile(orderData) {
     }
 }
 
+async function handleApiRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`,
+                ...options.headers
+            }
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Request failed');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('API request failed:', error);
+        showNotification(error.message || 'An error occurred', 'error');
+        throw error;
+    }
+}
+
 // DO NOT EVER REMOVE, ONLY MODIFY - Core cart total calculation and UI update
 function updateTotal() {
     try {
         const total = getTotal();
         const totalElement = document.getElementById('total-price');
-        const itemCountElement = document.getElementById('item-count');
+        const confirmationTotal = document.getElementById('confirmation-total');
         const checkoutBtn = document.getElementById('checkout-btn');
         const cartFooter = document.getElementById('cart-footer');
-        const shippingInfo = document.querySelector('.shipping-info');
+        const emptyCart = document.getElementById('empty-cart');
         
         // Update total price display
         if (totalElement) {
             totalElement.textContent = `$${total.toFixed(2)}`;
         }
         
-        // Update item count
-        const itemCount = getCartCount();
-        if (itemCountElement) {
-            itemCountElement.textContent = itemCount;
-            
-            // Update page title with item count when on cart page
-            if (window.location.pathname.includes('Viewing cart.html') && itemCount > 0) {
-                document.title = `Cart (${itemCount}) - PowerPuffGirls`;
-            }
+        // Update confirmation total
+        if (confirmationTotal) {
+            confirmationTotal.textContent = `$${total.toFixed(2)}`;
         }
         
-        // Update shipping info based on total
-        if (shippingInfo) {
-            if (total >= 50) {
-                shippingInfo.innerHTML = '<i class="fas fa-check-circle"></i> Free shipping applied!';
-                shippingInfo.style.color = '#4caf50';
-            } else {
-                const remaining = (50 - total).toFixed(2);
-                shippingInfo.innerHTML = `<i class="fas fa-truck"></i> Add $${remaining} more for free shipping!`;
-                shippingInfo.style.color = '#666';
-            }
+        // Update cart footer and empty cart message visibility
+        const itemCount = getCartCount();
+        if (emptyCart) {
+            emptyCart.style.display = itemCount > 0 ? 'none' : 'flex';
         }
-
+        
+        if (cartFooter) {
+            cartFooter.style.display = itemCount > 0 ? 'flex' : 'none';
+        }
+        
         // Update checkout button state
         if (checkoutBtn) {
-            checkoutBtn.disabled = cart.length === 0;
-        }
-        
-        // Update cart footer visibility
-        if (cartFooter) {
-            cartFooter.style.display = cart.length > 0 ? 'block' : 'none';
+            checkoutBtn.disabled = itemCount === 0;
+            checkoutBtn.title = itemCount > 0 ? 'Complete your purchase' : 'Your cart is empty';
         }
         
         // Update cart badge in header
@@ -459,13 +472,202 @@ function updateTotal() {
         console.error('Error updating cart total:', error);
         return 0;
     }
-    if (emptyCart) {
-        emptyCart.style.display = itemCount > 0 ? 'none' : 'flex';
+}
+
+async function displayProducts() {
+    const productsContainer = document.getElementById('products-container');
+    if (!productsContainer) return;
+
+    try {
+        // Show loading state
+        productsContainer.innerHTML = '<div class="loading">Loading products...</div>';
+        
+        const products = await ApiService.getProducts();
+        
+        if (products.length === 0) {
+            productsContainer.innerHTML = '<div class="no-products">No products available</div>';
+            return;
+        }
+
+        productsContainer.innerHTML = products.map(product => `
+            <div class="product-card" 
+                 data-id="${product.id}" 
+                 data-category="${product.category}">
+                <img src="${product.imageUrl || 'placeholder.jpg'}" alt="${product.name}">
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p>$${product.price.toFixed(2)}</p>
+                    <span>${'★'.repeat(Math.round(product.rating))}${'☆'.repeat(5-Math.round(product.rating))}</span>
+                    ${product.stock > 0 ? 
+                        `<button class="add-to-cart" data-id="${product.id}">
+                            Add to Cart
+                        </button>` : 
+                        '<button class="out-of-stock" disabled>Out of Stock</button>'}
+                    ${product.stock < 10 && product.stock > 0 ? 
+                        `<div class="low-stock">Only ${product.stock} left!</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const productId = e.target.dataset.id;
+                try {
+                    await ApiService.addToCart(productId, 1);
+                    showNotification('Added to cart!', 'success');
+                    updateCartBadge();
+                } catch (error) {
+                    showNotification(error.message || 'Failed to add to cart', 'error');
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error('Error displaying products:', error);
+        productsContainer.innerHTML = `
+            <div class="error">
+                Failed to load products. 
+                <button onclick="location.reload()">Try Again</button>
+            </div>`;
     }
-    if (checkoutBtn) {
-        checkoutBtn.disabled = itemCount === 0;
-        checkoutBtn.title = itemCount > 0 ? 'Proceed to secure checkout' : 'Your cart is empty';
+}
+
+// Generate order ID in the format: ORD + timestamp
+function generateOrderId() {
+    return 'ORD' + Date.now();
+}
+
+// Handle checkout process
+function handleCheckout() {
+    const total = getTotal();
+    if (total <= 0) return;
+    
+    // Generate order ID
+    const orderId = generateOrderId();
+    
+    // Show confirmation message with order details
+    const confirmationMessage = document.getElementById('confirmation-message');
+    const orderIdElement = document.getElementById('order-id');
+    
+    if (confirmationMessage && orderIdElement) {
+        // Update the order ID in the UI
+        orderIdElement.textContent = orderId;
+        
+        // Show the confirmation message
+        confirmationMessage.classList.add('show');
+        
+        // Hide the cart items and footer
+        const cartContainer = document.querySelector('.cart-container');
+        const cartFooter = document.getElementById('cart-footer');
+        if (cartContainer) cartContainer.style.display = 'none';
+        if (cartFooter) cartFooter.style.display = 'none';
+        
+        // Save the order to the server
+        saveOrderToServer(orderId, total);
     }
     
-    console.log('Cart updated:', { total, itemCount, cart });
+    // Clear the cart after showing the message
+    cart = [];
+    saveCart();
 }
+
+// Save order to server
+async function saveOrderToServer(orderId, total) {
+    // Get current user from localStorage or use 'guest' if not logged in
+    const currentUser = localStorage.getItem('currentUser') || 'guest';
+    
+    try {
+        // Format items as a semicolon-separated list of product names
+        const itemsList = cart.map(item => item.name).join(';');
+        
+        // Format the order line to match the existing format in orders.txt
+        // Format: ORD{timestamp},username,item1;item2;item3,status
+        const orderLine = `${orderId},${currentUser},${itemsList},Pending`;
+        
+        console.log('Saving order:', orderLine);
+        
+        // Send the order to the server to be saved to orders.txt
+        const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: orderLine
+        });
+        
+        if (response.ok) {
+            console.log('Order saved to server:', orderLine);
+            return true;
+        }
+        
+        // If we got here, the server returned an error
+        const errorData = await response.text();
+        throw new Error(`Server error: ${response.status} ${errorData}`);
+        
+    } catch (error) {
+        console.error('Error saving order:', error);
+        // Show error message to user
+        const orderIdElement = document.getElementById('order-id');
+        if (orderIdElement) {
+            orderIdElement.textContent = `${orderId} (Save Failed - Check Console)`;
+        }
+        
+        // Fallback to localStorage if server save fails
+        try {
+            const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
+            pendingOrders.push({
+                orderId: orderId,
+                userId: currentUser,
+                items: cart.map(item => item.name).join(';'),
+                status: 'Pending',
+                total: total,
+                timestamp: new Date().toISOString(),
+                rawLine: `${orderId},${currentUser},${cart.map(item => item.name).join(';')},Pending`
+            });
+            
+            localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
+            console.log('Order saved to localStorage as fallback');
+            
+            if (orderIdElement) {
+                orderIdElement.textContent = `${orderId} (Saved Locally - Not on Server)`;
+            }
+        } catch (e) {
+            console.error('Failed to save order to localStorage:', e);
+            if (orderIdElement) {
+                orderIdElement.textContent = `${orderId} (Save Failed Completely)`;
+            }
+        }
+        
+        return false;
+    }
+}
+// Close cart and redirect to home
+function closeCart() {
+    window.location.href = 'index.html';
+}
+
+// Initialize event listeners for cart page
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize cart
+    getCart();
+    updateTotal();
+    
+    // Handle checkout button click
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', handleCheckout);
+    }
+    
+    // Handle continue shopping button in confirmation
+    const continueShoppingBtn = document.getElementById('continue-shopping');
+    if (continueShoppingBtn) {
+        continueShoppingBtn.addEventListener('click', closeCart);
+    }
+    
+    // Handle close button
+    const closeBtn = document.getElementById('close-cart');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeCart);
+    }
+});

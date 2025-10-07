@@ -2,7 +2,10 @@ package com.shopping.data;
 
 import com.shopping.model.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -11,6 +14,7 @@ public class FileHandler {
     private static final String PRODUCTS_FILE = DATA_DIR + "products.txt";
     private static final String USERS_FILE = DATA_DIR + "users.txt";
     public static final String ORDERS_FILE = DATA_DIR + "orders.txt";
+    private static final String CART_STATUS = "CART";
     
     public FileHandler() {
         // Ensure the data directory exists
@@ -32,6 +36,178 @@ public class FileHandler {
         Path path = Paths.get(filePath);
         if (!Files.exists(path)) {
             Files.createFile(path);
+        }
+    }
+
+    /**
+     * Converts an Order object to a string representation for storage
+     * @param order The order to convert
+     * @return String representation of the order
+     */
+    /**
+     * Converts an Order object to a string representation for storage
+     * Format: orderId,userId,timestamp,status,product1;product2;...
+     * @param order The order to convert
+     * @return String representation of the order
+     */
+    private String orderToString(Order order) {
+        if (order == null) {
+            throw new IllegalArgumentException("Order cannot be null");
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(escapeCsv(order.getOrderId())).append(",")
+          .append(escapeCsv(order.getUserId())).append(",")
+          .append(System.currentTimeMillis()).append(",")
+          .append(escapeCsv(order.getOrderStatus()));
+        
+        // Add products
+        if (order.getProductList() != null && !order.getProductList().isEmpty()) {
+            sb.append(",").append(String.join(";", order.getProductList()));
+        }
+        
+        return sb.toString();
+    }
+    
+    /**
+     * Saves an order to the orders file, updating if it already exists
+     * @param order The order to save
+     * @throws IOException If there's an error writing to the file
+     */
+    /**
+     * Saves an order to the orders file, updating if it already exists
+     * @param order The order to save
+     * @throws IOException If there's an error writing to the file
+     */
+    public synchronized void saveOrder(Order order) throws IOException {
+        if (order == null) {
+            throw new IllegalArgumentException("Order cannot be null");
+        }
+        
+        createBackup(ORDERS_FILE);
+        
+        // Read existing orders
+        List<String> orderLines = new ArrayList<>();
+        if (Files.exists(getDataPath(ORDERS_FILE))) {
+            orderLines = Files.readAllLines(getDataPath(ORDERS_FILE), StandardCharsets.UTF_8);
+        }
+        
+        String orderLine = orderToString(order);
+        
+        // Remove existing order/cart for this user if it exists
+        orderLines.removeIf(line -> {
+            if (line == null || line.trim().isEmpty()) return false;
+            try {
+                String[] parts = line.split(",", 5);
+                return parts.length >= 2 && 
+                       parts[1].equals(order.getUserId()) && 
+                       (CART_STATUS.equals(parts[3]) || 
+                       (parts.length > 0 && parts[0].equals(order.getOrderId())));
+            } catch (Exception e) {
+                System.err.println("Error parsing order line: " + line);
+                return false;
+            }
+        });
+        
+        // Add the new/updated order
+        orderLines.add(orderLine);
+        
+        // Write all orders back to file
+        Path tempFile = Files.createTempFile("orders", ".tmp");
+        try {
+            Files.write(tempFile, orderLines, StandardCharsets.UTF_8,
+                      StandardOpenOption.CREATE,
+                      StandardOpenOption.TRUNCATE_EXISTING);
+            // Atomic move to replace the original file
+            Files.move(tempFile, getDataPath(ORDERS_FILE),
+                     StandardCopyOption.REPLACE_EXISTING,
+                     StandardCopyOption.ATOMIC_MOVE);
+        } finally {
+            // Clean up temp file if it still exists
+            if (Files.exists(tempFile)) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                } catch (IOException e) {
+                    System.err.println("Failed to delete temp file: " + e.getMessage());
+                }
+            }
+        }
+    }
+    
+    /**
+     * Creates a backup of a file with a timestamp
+     * @param filename The name of the file to back up
+     * @throws IOException If there's an error creating the backup
+     */
+    private void createBackup(String filename) throws IOException {
+        Path source = getDataPath(filename);
+        if (!Files.exists(source)) return;
+        
+        // Create backup directory if it doesn't exist
+        Path backupDir = getDataPath("backups");
+        Files.createDirectories(backupDir);
+        
+        // Create timestamped backup file
+        String timestamp = LocalDateTime.now()
+            .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String backupFilename = filename + "." + timestamp + ".bak";
+        Path target = backupDir.resolve(backupFilename);
+        
+        // Copy the file
+        Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    /**
+     * Removes the cart for a specific user
+     * @param username The username whose cart should be removed
+     * @throws IOException If there's an error modifying the orders file
+     * @throws IllegalArgumentException if username is null
+     */
+    public synchronized void removeCartForUser(String username) throws IOException {
+        if (username == null) {
+            throw new IllegalArgumentException("Username cannot be null");
+        }
+    
+        // Create backup before modification
+        createBackup(ORDERS_FILE);
+    
+        // Read all orders
+        if (Files.exists(getDataPath(ORDERS_FILE))) {
+            List<String> orderLines = Files.readAllLines(getDataPath(ORDERS_FILE), StandardCharsets.UTF_8);
+            
+            // Remove any cart entries for this user
+            orderLines.removeIf(line -> {
+                if (line == null || line.trim().isEmpty()) return false;
+                try {
+                    String[] parts = line.split(",", 5);
+                    return parts.length >= 2 && 
+                           parts[1].equals(username) && 
+                           (CART_STATUS.equals(parts[3]) || "Pending".equals(parts[3]));
+                } catch (Exception e) {
+                    System.err.println("Error parsing order line: " + line);
+                    return false;
+                }
+            });
+    
+            // Write back the filtered list using atomic operation
+            Path tempFile = Files.createTempFile("orders", ".tmp");
+            try {
+                Files.write(tempFile, orderLines, StandardCharsets.UTF_8,
+                          StandardOpenOption.CREATE,
+                          StandardOpenOption.TRUNCATE_EXISTING);
+                // Atomic move to replace the original file
+                Files.move(tempFile, getDataPath(ORDERS_FILE),
+                         StandardCopyOption.REPLACE_EXISTING,
+                         StandardCopyOption.ATOMIC_MOVE);
+            } finally {
+                // Clean up temp file if it still exists
+                if (Files.exists(tempFile)) {
+                    try {
+                        Files.deleteIfExists(tempFile);
+                    } catch (IOException e) {
+                        System.err.println("Failed to delete temp file: " + e.getMessage());
+                    }
+                }
+            }
         }
     }
     
@@ -184,30 +360,6 @@ public class FileHandler {
         saveProducts(products);
     }
     
-    /**
-     * Saves an order to the orders file
-     * @param orderId The order ID
-     * @param username The username
-     * @param items List of order items
-     * @param status Order status
-     * @throws IOException If there's an error writing to the file
-     */
-    public void saveOrder(String orderId, String username, List<OrderItem> items, String status) throws IOException {
-        Path filePath = getDataPath(ORDERS_FILE);
-        String line = String.format("%s,%s,%s,%s,%s", 
-            orderId, 
-            username, 
-            System.currentTimeMillis(), 
-            status,
-            items.stream()
-                .map(i -> String.format("%s:%d", i.getProductId(), i.getQuantity()))
-                .collect(Collectors.joining(";")));
-        
-        Files.write(filePath, 
-            Collections.singletonList(line), 
-            StandardOpenOption.CREATE, 
-            StandardOpenOption.APPEND);
-    }
     
     public List<String> loadUsers() throws IOException {
         Path filePath = getDataPath(USERS_FILE);
@@ -251,4 +403,5 @@ public class FileHandler {
         saveUsers(users);
         return true;
     }
+    
 }

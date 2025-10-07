@@ -27,18 +27,26 @@
   </div>
 
   <div class="cart-footer" id="cart-footer" style="display: none;">
-    <div class="cart-summary">
-      <div class="total-amount">
-        <span class="label">Subtotal (<span id="item-count">0</span> items):</span>
-        <span class="price" id="total-price">$0.00</span>
-      </div>
-      <div class="shipping-info">
-        <i class="fas fa-truck"></i> Free shipping on orders over $50
-      </div>
+    <div class="total-amount">
+      <span class="price" id="total-price">$0.00</span>
     </div>
     <button class="checkout-btn" id="checkout-btn">
       <i class="fas fa-shopping-cart"></i> Buy Now
     </button>
+  </div>
+  
+  <!-- Confirmation Message -->
+  <div id="confirmation-message" style="display: none;">
+    <div class="confirmation-content">
+      <i class="fas fa-check-circle"></i>
+      <h3>Order Placed Successfully!</h3>
+      <div class="order-details">
+        <p>Order ID: <strong id="order-id">-</strong></p>
+        <p>Total: <strong id="confirmation-total">$0.00</strong></p>
+        <p>Status: <span class="status-pending">Pending</span></p>
+      </div>
+      <button id="continue-shopping">Continue Shopping</button>
+    </div>
   </div>
 
   <script src="main.js"></script>

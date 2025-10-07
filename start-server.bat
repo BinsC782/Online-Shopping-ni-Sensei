@@ -2,32 +2,19 @@
 setlocal
 
 echo ===================================
-echo  Online Shopping App - Build & Run
+echo  Online Shopping App - Start Server
 echo ===================================
 
-:: Set up environment
-set SRC=src\main\java
 set BIN=target\classes
 set LIBS=lib\*
 
-:: Create target directory if it doesn't exist
-if not exist "%BIN%" mkdir "%BIN%"
-
-echo Compiling Java source files...
-
-:: Compile all Java files
-javac -d "%BIN%" -cp "%LIBS%" "%SRC%\com\shopping\*.java"
-
-if errorlevel 1 (
-    echo.
-    echo Compilation failed. Please check the errors above.
+if not exist "%BIN%\com\shopping\ServerMain.class" (
+    echo Error: Server not compiled. Please run 'run-server.bat' first.
     pause
     exit /b 1
 )
 
-echo.
-echo Compilation successful! Starting server...
-
+echo Starting server...
 echo ===================================
 echo  Server running at http://localhost:8080
 echo  Press Ctrl+C to stop the server

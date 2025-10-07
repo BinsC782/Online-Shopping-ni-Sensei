@@ -1,3 +1,5 @@
+// src/main/java/com/shopping/model/Product.java
+// 
 package com.shopping.model;
 
 public class Product {
@@ -33,6 +35,7 @@ public class Product {
     // Full constructor with all fields
     public Product(String id, String name, double price, String description, String category, int stock,
                   String sellerName, String sellerLocation, double rating, String reviews) {
+
         validateProductId(id);
         this.id = id;
         this.name = name;
