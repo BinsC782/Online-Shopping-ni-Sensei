@@ -1,0 +1,3 @@
+admin,admin123,admin@shopping.com
+test,test123,test@shopping.com
+user,user123,user@shopping.com

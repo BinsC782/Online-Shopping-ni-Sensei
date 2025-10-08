@@ -62,7 +62,7 @@
             </Label>
             <ToggleButton fx:id="allCategoriesBtn" text="All Categories" styleClass="category-button, active-category" selected="true" />
             <ToggleButton fx:id="accessoriesBtn" text="Accessories" styleClass="category-button" />
-            <ToggleButton fx:id="homeLifestyleBtn" text="Home &amp; Lifestyle" styleClass="category-button" />
+            <ToggleButton fx:id="homeLifestyleBtn" text="Home & Lifestyle" styleClass="category-button" />
             <ToggleButton fx:id="electronicsBtn" text="Electronics" styleClass="category-button" />
             <ToggleButton fx:id="fashionBtn" text="Fashion" styleClass="category-button" />
          </children>

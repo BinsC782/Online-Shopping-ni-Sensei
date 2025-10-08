@@ -221,6 +221,41 @@ public class FileHandler {
         }
         return input;
     }
+
+    /**
+     * Simple CSV parser that handles quoted fields with commas
+     */
+    private String[] parseCsvLine(String line) {
+        List<String> result = new ArrayList<>();
+        boolean inQuotes = false;
+        StringBuilder currentField = new StringBuilder();
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+
+            if (c == '"') {
+                if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                    // Escaped quote
+                    currentField.append('"');
+                    i++; // Skip next quote
+                } else {
+                    // Toggle quote mode
+                    inQuotes = !inQuotes;
+                }
+            } else if (c == ',' && !inQuotes) {
+                // Field separator
+                result.add(currentField.toString());
+                currentField.setLength(0);
+            } else {
+                currentField.append(c);
+            }
+        }
+
+        // Add the last field
+        result.add(currentField.toString());
+
+        return result.toArray(new String[0]);
+    }
     
     private Path getDataPath(String filename) {
         return Paths.get(DATA_DIR + filename).toAbsolutePath().normalize();
@@ -268,40 +303,55 @@ public class FileHandler {
     public List<Product> loadProducts() throws IOException {
         Path filePath = getDataPath(PRODUCTS_FILE);
         if (!Files.exists(filePath)) {
+            System.err.println("Products file not found: " + filePath);
             return new ArrayList<>();
         }
-        return Files.lines(filePath)
-            .filter(line -> !line.trim().isEmpty())
-            .map(line -> {
-                try {
-                    String[] parts = line.split(",");
-                    if (parts.length < 4) {
-                        throw new IllegalArgumentException("Invalid product format: " + line);
-                    }
-                    Product product = new Product(
-                        parts[0].trim(),  // ID
-                        parts[1].trim(),  // name
-                        Double.parseDouble(parts[2].trim()),  // price
-                        Integer.parseInt(parts[3].trim())     // stock
-                    );
-                    
-                    // Set additional fields if they exist
-                    if (parts.length > 4) product.setDescription(parts[4].trim());
-                    if (parts.length > 5) product.setCategory(parts[5].trim());
-                    if (parts.length > 6) product.setSellerName(parts[6].trim());
-                    if (parts.length > 7) product.setSellerLocation(parts[7].trim());
-                    if (parts.length > 8) product.setRating(Double.parseDouble(parts[8].trim()));
-                    if (parts.length > 9) product.setReviews(parts[9].trim());
-                    if (parts.length > 10) product.setImage(parts[10].trim());
-                    
-                    return product;
-                } catch (Exception e) {
-                    System.err.println("Error parsing product line: " + line + " - " + e.getMessage());
-                    return null;
+
+        List<String> lines = Files.readAllLines(filePath, StandardCharsets.UTF_8);
+        System.out.println("Loaded " + lines.size() + " lines from products file");
+
+        List<Product> products = new ArrayList<>();
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.isEmpty()) continue;
+
+            try {
+                // Use a proper CSV parser that handles commas in quoted fields
+                String[] parts = parseCsvLine(line);
+                System.out.println("Line " + (i+1) + " has " + parts.length + " parts: " + java.util.Arrays.toString(parts));
+
+                if (parts.length < 4) {
+                    System.err.println("Invalid product format at line " + (i+1) + ": " + line);
+                    continue;
                 }
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+
+                Product product = new Product(
+                    parts[0].trim(),  // ID
+                    parts[1].trim(),  // name
+                    Double.parseDouble(parts[2].trim()),  // price
+                    Integer.parseInt(parts[3].trim())     // stock
+                );
+
+                // Set additional fields if they exist
+                if (parts.length > 4) product.setDescription(parts[4].trim());
+                if (parts.length > 5) product.setCategory(parts[5].trim());
+                if (parts.length > 6) product.setStock(Integer.parseInt(parts[6].trim())); // Override stock if provided
+                if (parts.length > 7) product.setSellerName(parts[7].trim());
+                if (parts.length > 8) product.setSellerLocation(parts[8].trim());
+                if (parts.length > 9) product.setRating(Double.parseDouble(parts[9].trim()));
+                if (parts.length > 10) product.setReviews(parts[10].trim());
+                if (parts.length > 11) product.setImage(parts[11].trim());
+
+                products.add(product);
+                System.out.println("Loaded product: " + product.getName() + " (ID: " + product.getId() + ")");
+
+            } catch (Exception e) {
+                System.err.println("Error parsing product line " + (i+1) + ": " + line + " - " + e.getMessage());
+            }
+        }
+
+        System.out.println("Successfully loaded " + products.size() + " products");
+        return products;
     }
     
     public List<Product> loadProductsAsObjects() throws IOException {

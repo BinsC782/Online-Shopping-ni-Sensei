@@ -105,10 +105,17 @@
     -fx-translate-y: -5;  /* Same 5px lift effect as your :hover */
 }
 
-/* Product image styling */
+/* Product information section styling */
+.product-info {
+    -fx-spacing: 8px;
+    -fx-padding: 8 0;
+}
+
+/* Enhanced product image styling */
 .product-image {
     -fx-alignment: center;
     -fx-pref-height: 150;
+    -fx-background-radius: 8;
 }
 
 /* Image placeholder styling */
