@@ -5,8 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import com.shopping.service.ShoppingService;
-import com.shopping.data.FileHandler;
+
 import java.io.IOException;
 
 /**
@@ -14,25 +13,6 @@ import java.io.IOException;
  * This replaces the web-based ServerMain and provides a native desktop interface.
  */
 public class ShoppingApplication extends Application {
-
-    private ShoppingService shoppingService;
-
-    @Override
-    public void init() throws Exception {
-        super.init();
-        System.out.println("=== Initializing ShoppingApplication ===");
-
-        try {
-            // Initialize the shopping service with file handler
-            FileHandler fileHandler = new FileHandler();
-            this.shoppingService = new ShoppingService(fileHandler);
-            System.out.println("ShoppingService initialized successfully");
-        } catch (Exception e) {
-            System.err.println("Failed to initialize ShoppingService: " + e.getMessage());
-            e.printStackTrace();
-            throw e; // Re-throw to prevent application startup
-        }
-    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -47,18 +27,9 @@ public class ShoppingApplication extends Application {
             Parent root = loader.load();
             System.out.println("FXML loaded successfully");
 
-            // Get the controller and set the shopping service
+            // Get the controller (no need to set service since we use hardcoded data)
             MainController controller = loader.getController();
             System.out.println("Controller loaded: " + (controller != null ? "SUCCESS" : "FAILED"));
-
-            if (controller != null && shoppingService != null) {
-                controller.setShoppingService(shoppingService);
-                System.out.println("ShoppingService injected successfully");
-            } else {
-                System.err.println("ERROR: Controller or ShoppingService is null");
-                System.err.println("Controller: " + controller);
-                System.err.println("ShoppingService: " + shoppingService);
-            }
 
             // Create scene and apply CSS
             Scene scene = new Scene(root, 1200, 800);

@@ -1,26 +1,28 @@
 package com.shopping;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.image.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.control.Alert.AlertType;
+import javafx.event.ActionEvent;
+import javafx.geometry.Pos;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
-import com.shopping.model.Product;
-import com.shopping.model.Cart;
-import com.shopping.model.OrderItem;
-import com.shopping.service.ShoppingService;
-
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-import javafx.geometry.Pos;
-import javafx.fxml.Initializable; 
+
+import com.shopping.model.Cart;
+import com.shopping.model.Product;
+import com.shopping.model.OrderItem;
 
 /**
  * Main controller for the JavaFX Shopping Application.
@@ -34,30 +36,28 @@ public class MainController implements Initializable {
     @FXML private HBox searchSection;
     @FXML private TextField searchField;
     @FXML private Button searchButton;
-    @FXML private HBox userActions;
     @FXML private Label cartTotalLabel;
     @FXML private Button checkoutButton;
     @FXML private Button logoutButton;
-    @FXML private HBox categoryBar;
-    @FXML private Label categoriesLabel;
     @FXML private ToggleButton allCategoriesBtn;
     @FXML private ToggleButton accessoriesBtn;
     @FXML private ToggleButton homeLifestyleBtn;
     @FXML private ToggleButton electronicsBtn;
     @FXML private ToggleButton fashionBtn;
-    @FXML private ScrollPane productsScrollPane;
-    @FXML private TilePane productGrid;
+    @FXML private GridPane productsGridPane;
+
+    // 🛒 New embedded cart fields 🛒
+    @FXML private AnchorPane cartHostPane;
 
     // ToggleGroup for category buttons
     private ToggleGroup categoryToggleGroup;
 
-    // ObservableList for reactive product filtering
-    private ObservableList<Product> allProductsList;
-    private FilteredList<Product> filteredProducts;
-
-    private ShoppingService shoppingService;
     private Cart shoppingCart;
     private List<Product> allProducts;
+
+    // Embedded cart state management
+    private CartController cartController;
+    private Parent cartRoot; // Stores the loaded CartView content
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -67,33 +67,8 @@ public class MainController implements Initializable {
         // Set up event handlers
         setupEventHandlers();
 
-        // Load and display products - but only if service is available
-        System.out.println("=== INITIALIZE CALLED ===");
-        System.out.println("ShoppingService at init: " + (shoppingService != null ? "NOT NULL" : "NULL"));
-
-        // If service is not set yet, wait for it
-        if (shoppingService == null) {
-            System.out.println("Service not ready yet, will load products when service is set");
-        } else {
-            System.out.println("Service is ready, loading products immediately...");
-            loadProducts();
-        }
-    }
-
-    /**
-     * Set the shopping service instance
-     */
-    public void setShoppingService(ShoppingService shoppingService) {
-        System.out.println("=== SETTING SHOPPING SERVICE ===");
-        System.out.println("Service provided: " + (shoppingService != null ? "NOT NULL" : "NULL"));
-        this.shoppingService = shoppingService;
-        System.out.println("Service set on controller: " + (this.shoppingService != null ? "SUCCESS" : "FAILED"));
-
-        // If initialize() already ran but service wasn't ready, load products now
-        if (this.shoppingService != null && allProducts == null) {
-            System.out.println("Service is now ready, loading products...");
-            loadProducts();
-        }
+        // Load and display products immediately
+        loadProducts();
     }
 
     /**
@@ -124,7 +99,7 @@ public class MainController implements Initializable {
         if (searchField != null) searchField.setOnAction(e -> performSearch());
 
         // Checkout button
-        if (checkoutButton != null) checkoutButton.setOnAction(e -> performCheckout());
+        if (checkoutButton != null) checkoutButton.setOnAction(this::performCheckout);
 
         // Logout button
         if (logoutButton != null) logoutButton.setOnAction(e -> performLogout());
@@ -173,49 +148,323 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Load all products and display them
+     * Load all products and display them (using hardcoded data for immediate display)
      */
     private void loadProducts() {
-        if (shoppingService == null) {
-            System.err.println("ERROR: Shopping service is null!");
-            // Don't show error dialog - wait for service to be properly injected
-            return;
-        }
-
         try {
-            allProducts = shoppingService.getProducts();
-            System.out.println("=== DEBUG: Loaded " + allProducts.size() + " products ===");
+            // Use hardcoded products for immediate display
+            allProducts = getHardcodedProducts();
+            System.out.println("=== DEBUG: Loaded " + allProducts.size() + " hardcoded products ===");
             for (Product p : allProducts) {
-                System.out.println("Product: " + p.getName() + " - ID: " + p.getId() + " - Image: " + p.getImage());
+                System.out.println("Product: " + p.getName() + " - ID: " + p.getId() + " - Image: " + p.getImage() + " - Category: " + p.getCategory());
             }
             System.out.println("=== END DEBUG ===");
-
-            if (allProducts.isEmpty()) {
-                System.err.println("ERROR: No products loaded!");
-                showError("No products found in database");
-                return;
-            }
 
             displayProducts(allProducts);
         } catch (Exception e) {
             System.err.println("ERROR loading products: " + e.getMessage());
             showError("Failed to load products: " + e.getMessage());
             e.printStackTrace();
+            // Initialize empty list as defensive measure
+            allProducts = new ArrayList<>();
         }
     }
 
     /**
-     * Display products in the UI using TilePane
+     * Get hardcoded product data for immediate display (no file I/O required)
+     */
+    private List<Product> getHardcodedProducts() {
+        List<Product> products = new ArrayList<>();
+
+        // Product 1: Laptop
+        Product laptop = new Product("000001", "Laptop", 999.99, 10);
+        laptop.setDescription("High-performance laptop with 16GB RAM");
+        laptop.setCategory("Electronics");
+        laptop.setSellerName("TechStore");
+        laptop.setSellerLocation("New York");
+        laptop.setRating(4.5);
+        laptop.setReviews("Great laptop for work and gaming");
+        laptop.setImage("Attack Shark Keyboard.png");
+        products.add(laptop);
+
+        // Product 2: Smartphone
+        Product smartphone = new Product("000002", "Smartphone", 699.99, 15);
+        smartphone.setDescription("Latest smartphone with 128GB storage");
+        smartphone.setCategory("Electronics");
+        smartphone.setSellerName("MobileHub");
+        smartphone.setSellerLocation("California");
+        smartphone.setRating(4.7);
+        smartphone.setReviews("Excellent camera and battery life");
+        smartphone.setImage("Iphone 16.jpg");
+        products.add(smartphone);
+
+        // Product 3: Headphones
+        Product headphones = new Product("000003", "Headphones", 199.99, 20);
+        headphones.setDescription("Wireless noise-cancelling headphones");
+        headphones.setCategory("Electronics");
+        headphones.setSellerName("AudioWorld");
+        headphones.setSellerLocation("Texas");
+        headphones.setRating(4.3);
+        headphones.setReviews("Comfortable and great sound quality");
+        headphones.setImage("Airpods.jpg");
+        products.add(headphones);
+
+        // Product 4: Tablet
+        Product tablet = new Product("000004", "Tablet", 399.99, 8);
+        tablet.setDescription("10-inch tablet with stylus support");
+        tablet.setCategory("Electronics");
+        tablet.setSellerName("TabletPro");
+        tablet.setSellerLocation("Florida");
+        tablet.setRating(4.4);
+        tablet.setReviews("Perfect for drawing and note-taking");
+        tablet.setImage("AsusMonitor.jpg");
+        products.add(tablet);
+
+        // Product 5: Smartwatch
+        Product smartwatch = new Product("000005", "Smartwatch", 299.99, 12);
+        smartwatch.setDescription("Fitness tracking smartwatch");
+        smartwatch.setCategory("Electronics");
+        smartwatch.setSellerName("WearTech");
+        smartwatch.setSellerLocation("Washington");
+        smartwatch.setRating(4.6);
+        smartwatch.setReviews("Accurate fitness tracking features");
+        smartwatch.setImage("Casio Watch.jpg");
+        products.add(smartwatch);
+
+        // Product 6: Keyboard
+        Product keyboard = new Product("000006", "Mechanical Keyboard", 79.99, 25);
+        keyboard.setDescription("Mechanical gaming keyboard");
+        keyboard.setCategory("Accessories");
+        keyboard.setSellerName("GameGear");
+        keyboard.setSellerLocation("Nevada");
+        keyboard.setRating(4.2);
+        keyboard.setReviews("Reliable for gaming sessions");
+        keyboard.setImage("Attack Shark Keyboard.png");
+        products.add(keyboard);
+
+        // Product 7: Mouse
+        Product mouse = new Product("000007", "Wireless Mouse", 49.99, 30);
+        mouse.setDescription("Wireless ergonomic mouse");
+        mouse.setCategory("Accessories");
+        mouse.setSellerName("PeriTech");
+        mouse.setSellerLocation("Arizona");
+        mouse.setRating(4.1);
+        mouse.setReviews("Comfortable for long use");
+        mouse.setImage("GarudaHawk.jpg");
+        products.add(mouse);
+
+        // Product 8: Monitor
+        Product monitor = new Product("000008", "4K Monitor", 249.99, 5);
+        monitor.setDescription("27-inch 4K monitor");
+        monitor.setCategory("Electronics");
+        monitor.setSellerName("DisplayCorp");
+        monitor.setSellerLocation("Georgia");
+        monitor.setRating(4.8);
+        monitor.setReviews("Stunning visuals and color accuracy");
+        monitor.setImage("AsusMonitor.jpg");
+        products.add(monitor);
+
+        // Product 9: Printer
+        Product printer = new Product("000009", "Wireless Printer", 149.99, 7);
+        printer.setDescription("All-in-one wireless printer");
+        printer.setCategory("Electronics");
+        printer.setSellerName("PrintMaster");
+        printer.setSellerLocation("Illinois");
+        printer.setRating(4.0);
+        printer.setReviews("Good for home office use");
+        printer.setImage("PcCase.jpg");
+        products.add(printer);
+
+        // Product 11: Gaming Headset
+        Product headset = new Product("000011", "Gaming Headset", 89.99, 18);
+        headset.setDescription("Professional gaming headset with surround sound");
+        headset.setCategory("Electronics");
+        headset.setSellerName("GameAudio");
+        headset.setSellerLocation("Oregon");
+        headset.setRating(4.4);
+        headset.setReviews("Excellent sound quality for gaming");
+        headset.setImage("Airpods.jpg");
+        products.add(headset);
+
+        // Product 12: External SSD
+        Product ssd = new Product("000012", "External SSD 1TB", 129.99, 14);
+        ssd.setDescription("Portable 1TB external SSD drive");
+        ssd.setCategory("Electronics");
+        ssd.setSellerName("StoragePro");
+        ssd.setSellerLocation("Utah");
+        ssd.setRating(4.6);
+        ssd.setReviews("Fast transfer speeds and reliable storage");
+        ssd.setImage("KingstonSSD.jpg");
+        products.add(ssd);
+
+        // Product 13: Camera Bag
+        Product cameraBag = new Product("000013", "Professional Camera Bag", 79.99, 22);
+        cameraBag.setDescription("Waterproof camera bag with multiple compartments");
+        cameraBag.setCategory("Accessories");
+        cameraBag.setSellerName("PhotoGear");
+        cameraBag.setSellerLocation("Colorado");
+        cameraBag.setRating(4.3);
+        cameraBag.setReviews("Perfect for photographers on the go");
+        cameraBag.setImage("FstopperBag.jpg");
+        products.add(cameraBag);
+
+        // Product 14: Sunglasses
+        Product sunglasses = new Product("000014", "Polarized Sunglasses", 59.99, 35);
+        sunglasses.setDescription("UV400 polarized sunglasses for outdoor activities");
+        sunglasses.setCategory("Fashion");
+        sunglasses.setSellerName("StyleVision");
+        sunglasses.setSellerLocation("Arizona");
+        sunglasses.setRating(4.2);
+        sunglasses.setReviews("Great for driving and outdoor sports");
+        sunglasses.setImage("Sunglass.jpg");
+        products.add(sunglasses);
+
+        // Product 15: Casual Shoes
+        Product casualShoes = new Product("000015", "Casual Canvas Shoes", 49.99, 40);
+        casualShoes.setDescription("Comfortable canvas shoes for everyday wear");
+        casualShoes.setCategory("Fashion");
+        casualShoes.setSellerName("FootwearCo");
+        casualShoes.setSellerLocation("Nevada");
+        casualShoes.setRating(4.1);
+        casualShoes.setReviews("Lightweight and comfortable for walking");
+        casualShoes.setImage("Crocs.jpg");
+        products.add(casualShoes);
+
+        // Product 16: Hoodie
+        Product hoodie = new Product("000016", "Cotton Hoodie", 39.99, 28);
+        hoodie.setDescription("Soft cotton hoodie with front pocket");
+        hoodie.setCategory("Fashion");
+        hoodie.setSellerName("CasualWear");
+        hoodie.setSellerLocation("Washington");
+        hoodie.setRating(4.3);
+        hoodie.setReviews("Warm and comfortable for casual wear");
+        hoodie.setImage("NU jacket.jpg");
+        products.add(hoodie);
+
+        // Product 17: Cotton Socks
+        Product cottonSocks = new Product("000017", "Cotton Athletic Socks", 14.99, 50);
+        cottonSocks.setDescription("Pack of 6 cotton athletic socks");
+        cottonSocks.setCategory("Fashion");
+        cottonSocks.setSellerName("ComfortWear");
+        cottonSocks.setSellerLocation("California");
+        cottonSocks.setRating(4.0);
+        cottonSocks.setReviews("Comfortable and durable for daily use");
+        cottonSocks.setImage("Socks.jpg");
+        products.add(cottonSocks);
+
+        // Product 18: Coffee Maker
+        Product coffeeMaker = new Product("000018", "Programmable Coffee Maker", 89.99, 12);
+        coffeeMaker.setDescription("12-cup programmable coffee maker with timer");
+        coffeeMaker.setCategory("Home & Lifestyle");
+        coffeeMaker.setSellerName("KitchenEssentials");
+        coffeeMaker.setSellerLocation("Texas");
+        coffeeMaker.setRating(4.4);
+        coffeeMaker.setReviews("Makes great coffee with easy programming");
+        coffeeMaker.setImage("ThermFlask.jpg");
+        products.add(coffeeMaker);
+
+        // Product 19: Bluetooth Speaker
+        Product bluetoothSpeaker = new Product("000019", "Portable Bluetooth Speaker", 69.99, 20);
+        bluetoothSpeaker.setDescription("Waterproof portable Bluetooth speaker");
+        bluetoothSpeaker.setCategory("Electronics");
+        bluetoothSpeaker.setSellerName("AudioTech");
+        bluetoothSpeaker.setSellerLocation("Florida");
+        bluetoothSpeaker.setRating(4.5);
+        bluetoothSpeaker.setReviews("Great sound quality and battery life");
+        bluetoothSpeaker.setImage("Airpods.jpg");
+        products.add(bluetoothSpeaker);
+
+        // Product 20: Yoga Mat
+        Product yogaMat = new Product("000020", "Premium Yoga Mat", 34.99, 25);
+        yogaMat.setDescription("Non-slip premium yoga mat 6mm thick");
+        yogaMat.setCategory("Sports & Outdoors");
+        yogaMat.setSellerName("FitnessGear");
+        yogaMat.setSellerLocation("Georgia");
+        yogaMat.setRating(4.2);
+        yogaMat.setReviews("Perfect grip and comfortable for yoga practice");
+        yogaMat.setImage("GarudaHawk.jpg");
+        products.add(yogaMat);
+
+        // Product 21: Water Bottle
+        Product waterBottle = new Product("000021", "Insulated Water Bottle", 24.99, 30);
+        waterBottle.setDescription("Stainless steel insulated water bottle 32oz");
+        waterBottle.setCategory("Sports & Outdoors");
+        waterBottle.setSellerName("HydrationPro");
+        waterBottle.setSellerLocation("Illinois");
+        waterBottle.setRating(4.3);
+        waterBottle.setReviews("Keeps drinks cold for 24 hours");
+        waterBottle.setImage("ThermFlask.jpg");
+        products.add(waterBottle);
+
+        // Product 22: Desk Lamp
+        Product deskLamp = new Product("000022", "LED Desk Lamp", 45.99, 15);
+        deskLamp.setDescription("Adjustable LED desk lamp with wireless charging");
+        deskLamp.setCategory("Home & Lifestyle");
+        deskLamp.setSellerName("HomeLighting");
+        deskLamp.setSellerLocation("Michigan");
+        deskLamp.setRating(4.1);
+        deskLamp.setReviews("Bright LED light with phone charging base");
+        deskLamp.setImage("AsusMonitor.jpg");
+        products.add(deskLamp);
+
+        // Product 23: Backpack
+        Product backpack = new Product("000023", "Laptop Backpack", 79.99, 18);
+        backpack.setDescription("Waterproof laptop backpack with USB charging port");
+        backpack.setCategory("Accessories");
+        backpack.setSellerName("TravelGear");
+        backpack.setSellerLocation("New York");
+        backpack.setRating(4.4);
+        backpack.setReviews("Comfortable and spacious for daily commute");
+        backpack.setImage("FstopperBag.jpg");
+        products.add(backpack);
+
+        // Product 24: Wireless Charger
+        Product wirelessCharger = new Product("000024", "Fast Wireless Charger", 29.99, 35);
+        wirelessCharger.setDescription("Fast wireless charging pad for smartphones");
+        wirelessCharger.setCategory("Electronics");
+        wirelessCharger.setSellerName("ChargeTech");
+        wirelessCharger.setSellerLocation("Pennsylvania");
+        wirelessCharger.setRating(4.0);
+        wirelessCharger.setReviews("Quick charging with safety features");
+        wirelessCharger.setImage("KingstonSSD.jpg");
+        products.add(wirelessCharger);
+
+        // Product 25: Fitness Tracker
+        Product fitnessTracker = new Product("000025", "Fitness Activity Tracker", 99.99, 22);
+        fitnessTracker.setDescription("Advanced fitness tracker with heart rate monitor");
+        fitnessTracker.setCategory("Electronics");
+        fitnessTracker.setSellerName("HealthTech");
+        fitnessTracker.setSellerLocation("Ohio");
+        fitnessTracker.setRating(4.5);
+        fitnessTracker.setReviews("Accurate tracking for all activities");
+        fitnessTracker.setImage("Casio Watch.jpg");
+        products.add(fitnessTracker);
+
+        return products;
+    }
+
+    /**
+     * Display products in the UI using GridPane with 3-column layout
      */
     private void displayProducts(List<Product> products) {
-        productGrid.getChildren().clear();
-        System.out.println("Displaying " + products.size() + " products in TilePane");
+        productsGridPane.getChildren().clear();
+        System.out.println("Displaying " + products.size() + " products in GridPane");
 
-        for (Product product : products) {
+        int columns = 3; // 3 columns as requested
+        // Note: rows calculation not needed since GridPane handles layout automatically
+
+        for (int i = 0; i < products.size(); i++) {
+            Product product = products.get(i);
             try {
                 VBox productCard = createProductCard(product);
-                productGrid.getChildren().add(productCard);
-                System.out.println("Added product card: " + product.getName());
+
+                // Calculate row and column position
+                int row = i / columns;
+                int col = i % columns;
+
+                // Add to GridPane at calculated position
+                productsGridPane.add(productCard, col, row);
+                System.out.println("Added product card: " + product.getName() + " at position (" + row + ", " + col + ")");
             } catch (Exception e) {
                 System.err.println("Error creating product card for: " + product.getName() + " - " + e.getMessage());
                 e.printStackTrace();
@@ -230,7 +479,8 @@ public class MainController implements Initializable {
     private VBox createProductCard(Product product) {
         VBox card = new VBox();
         card.getStyleClass().add("product-card");
-        card.setPrefWidth(220);
+        card.setPrefWidth(300); // Increased from 220 to accommodate buttons
+        card.setMinWidth(280);  // Set minimum width to ensure buttons fit
 
         // Make the entire card clickable - ADD VISUAL FEEDBACK
         card.setOnMouseClicked(e -> {
@@ -242,8 +492,8 @@ public class MainController implements Initializable {
         // Also add click to image for testing
         ImageView productImage = new ImageView();
         productImage.getStyleClass().add("product-image");
-        productImage.setFitWidth(180);
-        productImage.setFitHeight(150);
+        productImage.setFitWidth(260); // Increased proportionally from 180
+        productImage.setFitHeight(200); // Increased proportionally from 150
         productImage.setPreserveRatio(true);
         productImage.setOnMouseClicked(e -> {
             productImage.setStyle("-fx-border-color: #ff0000; -fx-border-width: 2;"); // red border
@@ -270,15 +520,16 @@ public class MainController implements Initializable {
         }
 
         // Product information section - exactly like HTML div.product-info
-        VBox productInfo = new VBox(6);
+        VBox productInfo = new VBox(8); // Increased spacing slightly
         productInfo.getStyleClass().add("product-info");
         productInfo.setAlignment(Pos.CENTER_LEFT);
+        productInfo.setPrefWidth(280); // Match card width
 
         // Product name - equivalent to h3
         Label nameLabel = new Label(product.getName());
         nameLabel.getStyleClass().add("product-name");
         nameLabel.setWrapText(true);
-        nameLabel.setMaxWidth(180);
+        nameLabel.setMaxWidth(260); // Adjusted to match new image width
 
         // Price - equivalent to p
         Label priceLabel = new Label(String.format("$%.2f", product.getPrice()));
@@ -293,9 +544,11 @@ public class MainController implements Initializable {
         productInfo.getChildren().addAll(nameLabel, priceLabel, ratingLabel);
 
         // Action buttons section (enhanced for JavaFX functionality)
-        HBox buttonBox = new HBox(10);
+        HBox buttonBox = new HBox(15); // Increased spacing from 10 to 15
         buttonBox.getStyleClass().add("product-buttons");
         buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setPrefWidth(280); // Match card width
+        buttonBox.setMinWidth(280);  // Ensure minimum width
 
         Button addToCartButton = new Button("Add to Cart");
         Button viewDetailsButton = new Button("View Details");
@@ -313,6 +566,10 @@ public class MainController implements Initializable {
             showProductModal(product);
         });
 
+        // Ensure buttons maintain their preferred size
+        addToCartButton.setPrefWidth(120);
+        viewDetailsButton.setPrefWidth(120);
+
         buttonBox.getChildren().addAll(addToCartButton, viewDetailsButton);
 
         // Assemble card - Image on top, then product-info, then buttons
@@ -320,7 +577,6 @@ public class MainController implements Initializable {
 
         return card;
     }
-
 
     /**
      * Get the appropriate image name for a product
@@ -337,7 +593,7 @@ public class MainController implements Initializable {
      */
     private void setSimplePlaceholderImage(ImageView imageView, Product product) {
         // Create a simple colored background
-        javafx.scene.shape.Rectangle bg = new javafx.scene.shape.Rectangle(180, 150);
+        javafx.scene.shape.Rectangle bg = new javafx.scene.shape.Rectangle(260, 200); // Updated to match new image dimensions
         bg.setFill(javafx.scene.paint.Color.LIGHTGRAY);
 
         // Add text with product initial
@@ -353,11 +609,11 @@ public class MainController implements Initializable {
         group.getChildren().addAll(bg, text);
 
         // Position text in center
-        text.setTranslateX(90 - text.getLayoutBounds().getWidth()/2);
-        text.setTranslateY(75 + text.getLayoutBounds().getHeight()/4);
+        text.setTranslateX(130 - text.getLayoutBounds().getWidth()/2); // Updated for new width (260/2 = 130)
+        text.setTranslateY(100 + text.getLayoutBounds().getHeight()/4); // Updated for new height (200/2 = 100)
 
         // Create snapshot as image
-        javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(180, 150);
+        javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(260, 200); // Updated dimensions
         group.snapshot(null, image);
         imageView.setImage(image);
     }
@@ -370,12 +626,10 @@ public class MainController implements Initializable {
         if (searchTerm.isEmpty()) {
             displayProducts(allProducts);
         } else {
-            try {
-                List<Product> searchResults = shoppingService.searchProducts(searchTerm);
-                displayProducts(searchResults);
-            } catch (Exception e) {
-                showError("Search failed: " + e.getMessage());
-            }
+            List<Product> searchResults = allProducts.stream()
+                .filter(product -> product.getName().toLowerCase().contains(searchTerm.toLowerCase()))
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            displayProducts(searchResults);
         }
     }
 
@@ -417,8 +671,8 @@ public class MainController implements Initializable {
 
         // Product image section
         ImageView modalImage = new ImageView();
-        modalImage.setFitWidth(200);
-        modalImage.setFitHeight(150);
+        modalImage.setFitWidth(260); // Updated to match new card image dimensions
+        modalImage.setFitHeight(200); // Updated to match new card image dimensions
         modalImage.setPreserveRatio(true);
 
         // Load product image
@@ -614,31 +868,53 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Perform checkout process
+     * Handle checkout button click - now shows embedded cart panel
      */
-    private void performCheckout() {
-        if (shoppingCart.getItems().isEmpty()) {
-            showWarning("Your cart is empty");
-            return;
-        }
+    @FXML
+    private void performCheckout(ActionEvent event) {
+        if (cartRoot == null) {
+            // Load FXML content and controller once
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/CartView.fxml"));
+                cartRoot = loader.load();
+                cartController = loader.getController();
 
-        try {
-            // Convert cart items to order format and process
-            var orderResult = shoppingService.placeOrder("current_user", shoppingCart.getItems());
+                // Inject the cart model and a reference to the main controller
+                cartController.setCart(this.shoppingCart);
+                cartController.setMainController(this); // Pass reference for control flow
 
-            if ("success".equals(orderResult.status)) {
-                showInfo("Order placed successfully!\nOrder ID: " + orderResult.orderId);
-            } else {
-                showError("Order failed: " + orderResult.message);
+                // Embed the cart content into the AnchorPane
+                cartHostPane.getChildren().add(cartRoot);
+                AnchorPane.setTopAnchor(cartRoot, 0.0);
+                AnchorPane.setBottomAnchor(cartRoot, 0.0);
+                AnchorPane.setLeftAnchor(cartRoot, 0.0);
+                AnchorPane.setRightAnchor(cartRoot, 0.0);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                // CRITICAL: Stop execution but avoid app crash
+                System.err.println("FATAL: Embedded CartView FXML failed to load. Check file path/structure.");
+                return;
             }
-
-            // Clear cart after successful order
-            shoppingCart.getItems().clear();
-            updateCartDisplay();
-
-        } catch (Exception e) {
-            showError("Checkout failed: " + e.getMessage());
         }
+
+        // Toggle the cart visibility and manage FXML properties
+        boolean isVisible = !cartHostPane.isVisible();
+        cartHostPane.setVisible(isVisible);
+        cartHostPane.setManaged(isVisible); // Managed = takes up space in layout
+
+        // If the cart is being shown, force a refresh of the contents
+        if (isVisible && cartController != null) {
+            cartController.updateCartView();
+        }
+    }
+
+    /**
+     * Hide the embedded cart panel (called by CartController)
+     */
+    public void hideCartView() {
+        cartHostPane.setVisible(false);
+        cartHostPane.setManaged(false);
     }
 
     /**
