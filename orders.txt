@@ -15,3 +15,9 @@ Product: Smartphone, Quantity: 1, Price: 699.99, Total: 699.99
 Product: Headphones, Quantity: 1, Price: 199.99, Total: 199.99
 Total Cost: 1899.97
 ----------------------------------------
+--- Order Placed: 2025-10-09T12:26:01.089228300 ---
+Product: Attack Shark Keyboard, Quantity: 1, Price: 999.99, Total: 999.99
+Product: iPhone 16 for the burgis, Quantity: 1, Price: 699.99, Total: 699.99
+Product: Apple Airpods for the burgis, Quantity: 1, Price: 199.99, Total: 199.99
+Total Cost: 1899.97
+----------------------------------------
