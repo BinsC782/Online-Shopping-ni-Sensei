@@ -2,45 +2,11 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="cartMainBorderPane" prefHeight="700.0" prefWidth="400.0" style="-fx-background-color: #f8f8f8;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shopping.CartController">
-   <top>
-      <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 20 20 10 20; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;">
-         <Label text="Your Shopping Cart" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
-         <Region HBox.hgrow="ALWAYS" />
-         <Button fx:id="closeButton" text="X" onAction="#handleCloseCart" style="-fx-background-color: transparent; -fx-font-weight: bold;" />
-      </HBox>
-   </top>
-
-   <center>
-      <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
-         <VBox fx:id="cartContentContainer" style="-fx-padding: 20;">
-
-            <VBox fx:id="emptyCartVBox" alignment="CENTER" spacing="20.0" style="-fx-padding: 100 0 0 0;" managed="false" visible="false">
-               <Label text="Your cart is empty" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
-               <Label text="Start shopping to add items!" style="-fx-text-fill: #666;" />
-               <Button text="Continue Shopping" onAction="#handleContinueShopping" style="-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 5;" />
-            </VBox>
-
-            <VBox fx:id="filledCartVBox" spacing="15.0" />
-
-         </VBox>
-      </ScrollPane>
-   </center>
-
-   <bottom>
-      <VBox fx:id="footerVBox" alignment="TOP_RIGHT" style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 1 0 0 0; -fx-padding: 20;">
-         <children>
-            <HBox alignment="BOTTOM_RIGHT" spacing="30.0">
-               <Region HBox.hgrow="ALWAYS" />
-               <VBox alignment="BOTTOM_RIGHT" spacing="15.0">
-                  <Label fx:id="subtotalLabel" style="-fx-font-size: 14px; -fx-text-fill: #666666;" text="Subtotal:" />
-                  <Label fx:id="totalPriceLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;" text="$0.00" />
-                  <Button fx:id="checkoutButton" onAction="#handleProceedToCheckout" prefHeight="50.0" prefWidth="300.0" style="-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;" text="PROCEED TO SECURE CHECKOUT 🔒" />
-               </VBox>
-            </HBox>
-         </children>
-      </VBox>
-   </bottom>
-</BorderPane>
+<AnchorPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.shopping.CartController">
+    <children>
+        <Label layoutX="10.0" layoutY="10.0" text="Cart View Placeholder" />
+    </children>
+</AnchorPane>

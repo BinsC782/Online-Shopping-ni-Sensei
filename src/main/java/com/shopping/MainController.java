@@ -1,28 +1,38 @@
 package com.shopping;
 
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import com.shopping.model.Cart;
-import com.shopping.model.Product;
 import com.shopping.model.OrderItem;
+import com.shopping.model.Product;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 /**
  * Main controller for the JavaFX Shopping Application.
@@ -30,36 +40,47 @@ import com.shopping.model.OrderItem;
  */
 public class MainController implements Initializable {
 
-    @FXML private VBox mainContainer;
-    @FXML private HBox headerBar;
-    @FXML private Label logoLabel;
-    @FXML private HBox searchSection;
-    @FXML private TextField searchField;
-    @FXML private Button searchButton;
-    @FXML private Label cartTotalLabel;
-    @FXML private Button checkoutButton;
-    @FXML private Button logoutButton;
-    @FXML private ToggleButton allCategoriesBtn;
-    @FXML private ToggleButton accessoriesBtn;
-    @FXML private ToggleButton homeLifestyleBtn;
-    @FXML private ToggleButton electronicsBtn;
-    @FXML private ToggleButton fashionBtn;
-    @FXML private GridPane productsGridPane;
+    @FXML
+    private VBox mainContainer;
+    @FXML
+    private HBox headerBar;
+    @FXML
+    private Label logoLabel;
+    @FXML
+    private HBox searchSection;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private Button searchButton;
+    @FXML
+    private Label cartTotalLabel;
+    @FXML
+    private Button checkoutButton;
+    @FXML
+    private Button logoutButton;
+    @FXML
+    private ToggleButton allCategoriesBtn;
+    @FXML
+    private ToggleButton accessoriesBtn;
+    @FXML
+    private ToggleButton homeLifestyleBtn;
+    @FXML
+    private ToggleButton electronicsBtn;
+    @FXML
+    private ToggleButton fashionBtn;
+    @FXML
+    private GridPane productsGridPane;
 
-    // 🛒 New embedded cart fields 🛒
-    @FXML private AnchorPane cartHostPane;
+    @FXML
+    private AnchorPane cartHostPane;
 
     // ToggleGroup for category buttons
     private ToggleGroup categoryToggleGroup;
 
+    // Model fields
     private Cart shoppingCart;
     private List<Product> allProducts;
 
-    // Embedded cart state management
-    private CartController cartController;
-    private Parent cartRoot; // Stores the loaded CartView content
-
-    @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize shopping cart
         shoppingCart = new Cart();
@@ -79,11 +100,16 @@ public class MainController implements Initializable {
         categoryToggleGroup = new ToggleGroup();
 
         // Set up category toggle buttons if they exist
-        if (allCategoriesBtn != null) allCategoriesBtn.setToggleGroup(categoryToggleGroup);
-        if (accessoriesBtn != null) accessoriesBtn.setToggleGroup(categoryToggleGroup);
-        if (homeLifestyleBtn != null) homeLifestyleBtn.setToggleGroup(categoryToggleGroup);
-        if (electronicsBtn != null) electronicsBtn.setToggleGroup(categoryToggleGroup);
-        if (fashionBtn != null) fashionBtn.setToggleGroup(categoryToggleGroup);
+        if (allCategoriesBtn != null)
+            allCategoriesBtn.setToggleGroup(categoryToggleGroup);
+        if (accessoriesBtn != null)
+            accessoriesBtn.setToggleGroup(categoryToggleGroup);
+        if (homeLifestyleBtn != null)
+            homeLifestyleBtn.setToggleGroup(categoryToggleGroup);
+        if (electronicsBtn != null)
+            electronicsBtn.setToggleGroup(categoryToggleGroup);
+        if (fashionBtn != null)
+            fashionBtn.setToggleGroup(categoryToggleGroup);
 
         // Category filtering
         if (categoryToggleGroup != null) {
@@ -95,14 +121,18 @@ public class MainController implements Initializable {
         }
 
         // Search functionality
-        if (searchButton != null) searchButton.setOnAction(e -> performSearch());
-        if (searchField != null) searchField.setOnAction(e -> performSearch());
+        if (searchButton != null)
+            searchButton.setOnAction(e -> performSearch());
+        if (searchField != null)
+            searchField.setOnAction(e -> performSearch());
 
         // Checkout button
-        if (checkoutButton != null) checkoutButton.setOnAction(this::performCheckout);
+        if (checkoutButton != null)
+            checkoutButton.setOnAction(this::performCheckout);
 
         // Logout button
-        if (logoutButton != null) logoutButton.setOnAction(e -> performLogout());
+        if (logoutButton != null)
+            logoutButton.setOnAction(e -> performLogout());
     }
 
     /**
@@ -125,8 +155,8 @@ public class MainController implements Initializable {
             filtered = allProducts;
         } else {
             filtered = allProducts.stream()
-                .filter(product -> category.equals(product.getCategory()))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                    .filter(product -> category.equals(product.getCategory()))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         }
 
         displayProducts(filtered);
@@ -148,7 +178,8 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Load all products and display them (using hardcoded data for immediate display)
+     * Load all products and display them (using hardcoded data for immediate
+     * display)
      */
     private void loadProducts() {
         try {
@@ -156,7 +187,8 @@ public class MainController implements Initializable {
             allProducts = getHardcodedProducts();
             System.out.println("=== DEBUG: Loaded " + allProducts.size() + " hardcoded products ===");
             for (Product p : allProducts) {
-                System.out.println("Product: " + p.getName() + " - ID: " + p.getId() + " - Image: " + p.getImage() + " - Category: " + p.getCategory());
+                System.out.println("Product: " + p.getName() + " - ID: " + p.getId() + " - Image: " + p.getImage()
+                        + " - Category: " + p.getCategory());
             }
             System.out.println("=== END DEBUG ===");
 
@@ -177,7 +209,7 @@ public class MainController implements Initializable {
         List<Product> products = new ArrayList<>();
 
         // Product 1: Laptop
-        Product laptop = new Product("000001", "Laptop", 999.99, 10);
+        Product laptop = new Product("000001", "Attack Shark Keyboard", 999.99, 10);
         laptop.setDescription("High-performance laptop with 16GB RAM");
         laptop.setCategory("Electronics");
         laptop.setSellerName("TechStore");
@@ -464,7 +496,8 @@ public class MainController implements Initializable {
 
                 // Add to GridPane at calculated position
                 productsGridPane.add(productCard, col, row);
-                System.out.println("Added product card: " + product.getName() + " at position (" + row + ", " + col + ")");
+                System.out.println(
+                        "Added product card: " + product.getName() + " at position (" + row + ", " + col + ")");
             } catch (Exception e) {
                 System.err.println("Error creating product card for: " + product.getName() + " - " + e.getMessage());
                 e.printStackTrace();
@@ -473,14 +506,17 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Create a product card UI component that matches the original HTML design exactly
-     * Structure: Image on top, then product-info section with name, price, and rating
+     * Create a product card UI component that matches the original HTML design
+     * exactly
+     * Structure: Image on top, then product-info section with name, price, and
+     * rating
      */
     private VBox createProductCard(Product product) {
         VBox card = new VBox();
         card.getStyleClass().add("product-card");
         card.setPrefWidth(300); // Increased from 220 to accommodate buttons
-        card.setMinWidth(280);  // Set minimum width to ensure buttons fit
+        card.setMinWidth(280); // Set minimum width to ensure buttons fit
+        card.setAlignment(Pos.CENTER); // Center all children horizontally
 
         // Make the entire card clickable - ADD VISUAL FEEDBACK
         card.setOnMouseClicked(e -> {
@@ -535,7 +571,8 @@ public class MainController implements Initializable {
         Label priceLabel = new Label(String.format("$%.2f", product.getPrice()));
         priceLabel.getStyleClass().add("product-price");
 
-        // Rating - equivalent to span with stars (using actual rating from business logic)
+        // Rating - equivalent to span with stars (using actual rating from business
+        // logic)
         String stars = generateStarsFromRating(product.getRating());
         Label ratingLabel = new Label(stars);
         ratingLabel.getStyleClass().add("product-rating");
@@ -548,7 +585,9 @@ public class MainController implements Initializable {
         buttonBox.getStyleClass().add("product-buttons");
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setPrefWidth(280); // Match card width
-        buttonBox.setMinWidth(280);  // Ensure minimum width
+        buttonBox.setMinWidth(280); // Ensure minimum width
+        buttonBox.setMaxWidth(Double.MAX_VALUE); // Allow expansion
+        HBox.setHgrow(buttonBox, Priority.ALWAYS); // Fill available width
 
         Button addToCartButton = new Button("Add to Cart");
         Button viewDetailsButton = new Button("View Details");
@@ -593,12 +632,12 @@ public class MainController implements Initializable {
      */
     private void setSimplePlaceholderImage(ImageView imageView, Product product) {
         // Create a simple colored background
-        javafx.scene.shape.Rectangle bg = new javafx.scene.shape.Rectangle(260, 200); // Updated to match new image dimensions
+        javafx.scene.shape.Rectangle bg = new javafx.scene.shape.Rectangle(260, 200); // Updated to match new image
+                                                                                      // dimensions
         bg.setFill(javafx.scene.paint.Color.LIGHTGRAY);
 
         // Add text with product initial
-        String initial = product.getName().length() > 0 ?
-            product.getName().substring(0, 1).toUpperCase() : "P";
+        String initial = product.getName().length() > 0 ? product.getName().substring(0, 1).toUpperCase() : "P";
 
         javafx.scene.text.Text text = new javafx.scene.text.Text(initial);
         text.setFont(javafx.scene.text.Font.font("Arial", 36));
@@ -609,8 +648,8 @@ public class MainController implements Initializable {
         group.getChildren().addAll(bg, text);
 
         // Position text in center
-        text.setTranslateX(130 - text.getLayoutBounds().getWidth()/2); // Updated for new width (260/2 = 130)
-        text.setTranslateY(100 + text.getLayoutBounds().getHeight()/4); // Updated for new height (200/2 = 100)
+        text.setTranslateX(130 - text.getLayoutBounds().getWidth() / 2); // Updated for new width (260/2 = 130)
+        text.setTranslateY(100 + text.getLayoutBounds().getHeight() / 4); // Updated for new height (200/2 = 100)
 
         // Create snapshot as image
         javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(260, 200); // Updated dimensions
@@ -627,8 +666,8 @@ public class MainController implements Initializable {
             displayProducts(allProducts);
         } else {
             List<Product> searchResults = allProducts.stream()
-                .filter(product -> product.getName().toLowerCase().contains(searchTerm.toLowerCase()))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                    .filter(product -> product.getName().toLowerCase().contains(searchTerm.toLowerCase()))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
             displayProducts(searchResults);
         }
     }
@@ -640,10 +679,10 @@ public class MainController implements Initializable {
         try {
             // Create OrderItem from Product
             OrderItem orderItem = new OrderItem(
-                String.valueOf(product.getId()),
-                product.getName(),
-                product.getPrice(),
-                1  // quantity
+                    String.valueOf(product.getId()),
+                    product.getName(),
+                    product.getPrice(),
+                    1 // quantity
             );
 
             // Add to cart
@@ -657,7 +696,8 @@ public class MainController implements Initializable {
 
     /**
      * Show product modal dialog with detailed product information
-     * Matches the HTML modal structure with image, details, quantity selector, and Add to Cart button
+     * Matches the HTML modal structure with image, details, quantity selector, and
+     * Add to Cart button
      */
     private void showProductModal(Product product) {
         // Create modal dialog
@@ -746,7 +786,7 @@ public class MainController implements Initializable {
         quantityControls.getChildren().addAll(minusBtn, quantityValue, plusBtn);
 
         // Quantity event handlers
-        final int[] currentQuantity = {1};
+        final int[] currentQuantity = { 1 };
         final int maxStock = product.getStock();
 
         minusBtn.setOnAction(e -> {
@@ -772,22 +812,20 @@ public class MainController implements Initializable {
         // Blue Add to Cart button (as requested)
         Button addToCartBtn = new Button("Add to Cart");
         addToCartBtn.setStyle(
-            "-fx-background-color: #007bff; " +
-            "-fx-text-fill: white; " +
-            "-fx-font-size: 14px; " +
-            "-fx-font-weight: bold; " +
-            "-fx-padding: 10 20; " +
-            "-fx-background-radius: 5;"
-        );
+                "-fx-background-color: #007bff; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-padding: 10 20; " +
+                        "-fx-background-radius: 5;");
 
         Button cancelBtn = new Button("Cancel");
         cancelBtn.setStyle(
-            "-fx-background-color: #6c757d; " +
-            "-fx-text-fill: white; " +
-            "-fx-font-size: 14px; " +
-            "-fx-padding: 10 20; " +
-            "-fx-background-radius: 5;"
-        );
+                "-fx-background-color: #6c757d; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-padding: 10 20; " +
+                        "-fx-background-radius: 5;");
 
         actionButtons.getChildren().addAll(addToCartBtn, cancelBtn);
 
@@ -796,10 +834,10 @@ public class MainController implements Initializable {
             try {
                 // Create OrderItem with selected quantity
                 OrderItem orderItem = new OrderItem(
-                    String.valueOf(product.getId()),
-                    product.getName(),
-                    product.getPrice(),
-                    currentQuantity[0]  // Use selected quantity
+                        String.valueOf(product.getId()),
+                        product.getName(),
+                        product.getPrice(),
+                        currentQuantity[0] // Use selected quantity
                 );
 
                 // Add to cart
@@ -864,48 +902,43 @@ public class MainController implements Initializable {
 
         // Update cart items count
         // TODO: Display cart items count in UI when cart view is implemented
-        shoppingCart.getItems().size();  // Use the value to avoid unused variable warning
+        shoppingCart.getItems().size(); // Use the value to avoid unused variable warning
     }
 
     /**
-     * Handle checkout button click - now shows embedded cart panel
+     * Handle checkout button click - now implements direct checkout logic
      */
     @FXML
     private void performCheckout(ActionEvent event) {
-        if (cartRoot == null) {
-            // Load FXML content and controller once
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/CartView.fxml"));
-                cartRoot = loader.load();
-                cartController = loader.getController();
-
-                // Inject the cart model and a reference to the main controller
-                cartController.setCart(this.shoppingCart);
-                cartController.setMainController(this); // Pass reference for control flow
-
-                // Embed the cart content into the AnchorPane
-                cartHostPane.getChildren().add(cartRoot);
-                AnchorPane.setTopAnchor(cartRoot, 0.0);
-                AnchorPane.setBottomAnchor(cartRoot, 0.0);
-                AnchorPane.setLeftAnchor(cartRoot, 0.0);
-                AnchorPane.setRightAnchor(cartRoot, 0.0);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                // CRITICAL: Stop execution but avoid app crash
-                System.err.println("FATAL: Embedded CartView FXML failed to load. Check file path/structure.");
-                return;
-            }
+        if (shoppingCart.getItems().isEmpty()) {
+            showWarning("Your cart is empty. Please add items before checking out.");
+            return;
         }
 
-        // Toggle the cart visibility and manage FXML properties
-        boolean isVisible = !cartHostPane.isVisible();
-        cartHostPane.setVisible(isVisible);
-        cartHostPane.setManaged(isVisible); // Managed = takes up space in layout
+        try (FileWriter fw = new FileWriter("orders.txt", true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                PrintWriter out = new PrintWriter(bw)) {
 
-        // If the cart is being shown, force a refresh of the contents
-        if (isVisible && cartController != null) {
-            cartController.updateCartView();
+            out.println("--- Order Placed: " + java.time.LocalDateTime.now() + " ---");
+            for (OrderItem item : shoppingCart.getItems()) {
+                out.println("Product: " + item.getName() +
+                        ", Quantity: " + item.getQuantity() +
+                        ", Price: " + item.getPrice() +
+                        ", Total: " + (item.getPrice() * item.getQuantity()));
+            }
+            out.println("Total Cost: " + shoppingCart.getTotal());
+            out.println("----------------------------------------");
+
+            // Clear cart after successful checkout
+            shoppingCart.setItems(new ArrayList<>());
+            updateCartDisplay();
+
+            // Show confirmation dialog
+            showInfo("Items Successfully Bought. Info saved to orders.txt");
+
+        } catch (IOException e) {
+            System.err.println("Error writing to orders.txt: " + e.getMessage());
+            showError("Failed to save order information.");
         }
     }
 

@@ -1,3 +1,17 @@
-ORD1757938462804,vince (fadf),Smartphone,Pending
-ORD1757940248361,vince (097-98-98097),Headphones,Pending
-ORD1757940304709,vince (09086748628),Headphones;Headphones;Headphones;Headphones;Keyboard,Pending
+
+--- Order Placed: 2025-10-09T11:53:29.268276700 ---
+Product: Headphones, Quantity: 1, Price: 199.99, Total: 199.99
+Total Cost: 199.99
+----------------------------------------
+--- Order Placed: 2025-10-09T11:54:44.281872800 ---
+Product: Attack Shark Keyboard, Quantity: 1, Price: 999.99, Total: 999.99
+Product: Headphones, Quantity: 1, Price: 199.99, Total: 199.99
+Product: Smartphone, Quantity: 1, Price: 699.99, Total: 699.99
+Total Cost: 1899.97
+----------------------------------------
+--- Order Placed: 2025-10-09T12:00:22.841031600 ---
+Product: Attack Shark Keyboard, Quantity: 1, Price: 999.99, Total: 999.99
+Product: Smartphone, Quantity: 1, Price: 699.99, Total: 699.99
+Product: Headphones, Quantity: 1, Price: 199.99, Total: 199.99
+Total Cost: 1899.97
+----------------------------------------

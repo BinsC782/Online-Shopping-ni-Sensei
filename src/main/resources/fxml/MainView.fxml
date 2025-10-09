@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shopping.MainController">
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shopping.MainController">
    <!-- Header Section -->
    <children>
       <!-- Top Navigation Bar -->
@@ -77,7 +77,7 @@
             <!-- Products Display Area (Left Side) -->
             <ScrollPane fx:id="productsScrollPane" fitToWidth="true" fitToHeight="true" styleClass="products-scroll-pane" HBox.hgrow="ALWAYS">
                <content>
-                  <GridPane fx:id="productsGridPane" alignment="TOP_LEFT" hgap="20.0" vgap="20.0" styleClass="product-grid">
+                  <GridPane fx:id="productsGridPane" alignment="CENTER" hgap="20.0" vgap="20.0" styleClass="product-grid">
                      <padding>
                         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                      </padding>
