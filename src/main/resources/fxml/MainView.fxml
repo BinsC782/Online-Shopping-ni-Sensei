@@ -71,30 +71,15 @@
          </VBox.margin>
       </HBox>
 
-      <!-- Main Content Area with Embedded Cart -->
-      <HBox VBox.vgrow="ALWAYS">
-         <children>
-            <!-- Products Display Area (Left Side) -->
-            <ScrollPane fx:id="productsScrollPane" fitToWidth="true" fitToHeight="true" styleClass="products-scroll-pane" HBox.hgrow="ALWAYS">
-               <content>
-                  <GridPane fx:id="productsGridPane" alignment="TOP_LEFT" hgap="20.0" vgap="20.0" styleClass="product-grid">
-                     <padding>
-                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-                     </padding>
-                  </GridPane>
-               </content>
-            </ScrollPane>
-
-            <!-- Embedded Cart Panel (Right Side) -->
-            <AnchorPane fx:id="cartHostPane"
-                        prefWidth="400.0"
-                        minWidth="400.0"
-                        maxWidth="400.0"
-                        visible="false"
-                        managed="false"
-                        style="-fx-background-color: #f8f8f8; -fx-border-color: #ddd; -fx-border-width: 0 0 0 1;">
-            </AnchorPane>
-         </children>
-      </HBox>
+      <!-- Products Display Area -->
+      <ScrollPane fx:id="productsScrollPane" fitToWidth="true" fitToHeight="true" styleClass="products-scroll-pane">
+         <content>
+            <TilePane fx:id="productGrid" alignment="TOP_LEFT" hgap="20.0" vgap="20.0" prefColumns="4" styleClass="product-grid">
+               <padding>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+               </padding>
+            </TilePane>
+         </content>
+      </ScrollPane>
    </children>
 </VBox>

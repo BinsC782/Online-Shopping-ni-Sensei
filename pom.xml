@@ -20,25 +20,28 @@
     </properties>
 
     <dependencies>
-        <!-- JavaFX dependencies from Maven Central -->
+        <!-- JavaFX Controls (required for UI components) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- JavaFX FXML (required for FXML layouts) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- JavaFX Base (required for core JavaFX functionality) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- JavaFX Graphics (required for rendering) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
@@ -56,45 +59,66 @@
     <build>
         <plugins>
             <!-- Maven Compiler Plugin - Configure for JavaFX module path -->
-<plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-compiler-plugin</artifactId>
-    <version>3.11.0</version>
-    <configuration>
-        <source>17</source>
-        <target>17</target>
-        <release>17</release>
-        <compilerArgs>
-            <arg>--add-modules</arg>
-            <arg>javafx.controls,javafx.fxml,javafx.graphics,javafx.media</arg>
-        </compilerArgs>
-    </configuration>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <release>17</release>
+                    <!-- Enable annotation processing for FXML -->
+                    <compilerArgs>
+                        <arg>-Xlint:all</arg>
+                        <arg>-Xlint:-options</arg>
+                        <arg>-Xlint:-path</arg>
+                        <arg>-Xlint:-processing</arg>
+                    </compilerArgs>
+                </configuration>
             </plugin>
 
-           <!-- JavaFX Maven Plugin for running JavaFX apps -->
-<plugin>
-    <groupId>org.openjfx</groupId>
-    <artifactId>javafx-maven-plugin</artifactId>
-    <version>${javafx.maven.plugin.version}</version>
-    <configuration>
-        <mainClass>com.shopping.ShoppingApplication</mainClass>
-        <jvmArgs>
-            <arg>-Dprism.order=sw</arg>
-        </jvmArgs>
-        <options>
-            <option>--enable-native-access=javafx.graphics</option>
-        </options>
-    </configuration>
-    <executions>
-        <execution>
-            <!-- Run JavaFX application -->
-            <id>default-cli</id>
-            <configuration>
-                <mainClass>com.shopping.ShoppingApplication</mainClass>
-            </configuration>
-        </execution>
-    </executions>
-</plugin>
+            <!-- Maven Dependency Plugin to copy JavaFX libs for runtime -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- JavaFX Maven Plugin for running JavaFX apps -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>${javafx.maven.plugin.version}</version>
+                <configuration>
+                    <mainClass>com.shopping.ShoppingApplication</mainClass>
+                    <!-- Enable native access to avoid warnings -->
+                    <options>
+                        <option>--enable-native-access=javafx.graphics</option>
+                    </options>
+                </configuration>
+                <executions>
+                    <execution>
+                        <!-- Run JavaFX application -->
+                        <id>default-cli</id>
+                        <configuration>
+                            <mainClass>com.shopping.ShoppingApplication</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <!-- Create executable JAR with all dependencies -->
             <plugin>
