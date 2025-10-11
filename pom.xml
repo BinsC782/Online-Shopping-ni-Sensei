@@ -78,9 +78,12 @@
     <version>${javafx.maven.plugin.version}</version>
     <configuration>
         <mainClass>com.shopping.ShoppingApplication</mainClass>
-        <javaOptions>
-            <option>-Dprism.order=sw</option>
-        </javaOptions>
+        <jvmArgs>
+            <arg>-Dprism.order=sw</arg>
+        </jvmArgs>
+        <options>
+            <option>--enable-native-access=javafx.graphics</option>
+        </options>
     </configuration>
     <executions>
         <execution>
