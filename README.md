@@ -1,68 +1,19 @@
 # Online Shopping App
 
-A native desktop shopping application built with JavaFX and Java backend, transformed from the original web-based version while preserving all business logic and design elements.
+A simple web-based shopping application with Java backend and HTML/CSS/JavaScript frontend.
 
 ## Features
 - User registration and authentication
-- Product browsing and search with high-quality product images
-- Shopping cart functionality with persistent storage
-- Order management with CSV-based data persistence
-- Native desktop interface with preserved original design
-- Responsive layout optimized for desktop use
+- Product browsing and search
+- Shopping cart functionality
+- Order management
+- Responsive web interface
 
 ## Prerequisites
-- Java 17 or later (JavaFX-compatible version)
-- JavaFX SDK 17.0.2 or compatible version
-
-## Architecture Transformation
-
-### From Web Application to Desktop Application
-
-**Original Web Architecture:**
-```
-HTML Pages → Browser Navigation → JavaScript → HTTP API → Java Backend
-├── index.html (Login/Registration)
-├── homepage.html (Product Listing)
-├── Viewing cart.html (Shopping Cart)
-└── checkout.html (Checkout Process)
-```
-
-**New Desktop Architecture:**
-```
-JavaFX Screens → Event-Driven UI → Direct Java Calls → Same Java Backend
-├── Single Main Window (ShoppingApplication.java)
-├── Main Shopping View (MainView.fxml + MainController.java)
-├── Modal Dialogs (Product Details, Checkout)
-└── Sidebar Components (Cart Display, Categories)
-```
-
-### Key Transformation Benefits
-
-| **Aspect** | **Web Version** | **Desktop Version** |
-|------------|-----------------|-------------------|
-| **Navigation** | Page reloads, URL changes | Instant view switching, single window |
-| **Performance** | HTTP requests for data | Direct method calls, no network latency |
-| **User Experience** | Browser-based, multi-tab | Native desktop feel, integrated workflow |
-| **Images** | Web-hosted, HTTP loaded | Local resources, instant loading |
-| **Data Persistence** | Same CSV files, same FileHandler | Same CSV files, same FileHandler |
+- Java 11 or later
+- Web browser (Chrome, Firefox, Edge, etc.)
 
 ## Getting Started
-
-### Prerequisites Installation
-
-1. **Install Java JDK 17+**
-   ```bash
-   # Download from: https://adoptium.net/ or https://www.oracle.com/java/technologies/downloads/
-   # Verify installation:
-   java -version
-   javac -version
-   ```
-
-2. **Install JavaFX SDK**
-   ```bash
-   # Download JavaFX 17.0.2 from: https://gluonhq.com/products/javafx/
-   # Extract to: C:\Program Files\Java\javafx-sdk-17.0.2\
-   ```
 
 ### Building the Application
 
@@ -74,154 +25,171 @@ JavaFX Screens → Event-Driven UI → Direct Java Calls → Same Java Backend
 
 2. **Build the application**
    ```bash
-   compile.bat
+   build.bat
    ```
-   This compiles all Java source files with JavaFX module support and places compiled classes in the `target\classes` directory.
+   This will compile all Java source files and place the compiled classes in the `bin` directory.
 
 ### Running the Application
 
-1. **Start the desktop application**
+1. **Start the server**
    ```bash
    run.bat
    ```
-   The JavaFX application window will open automatically.
+   The server will start on `http://localhost:8080` by default.
 
-2. **Application Window**
-   - Main shopping interface with product grid
-   - Search functionality and category filtering
-   - Shopping cart sidebar (always accessible)
-   - Modal dialogs for product details and checkout
-
-### Development Workflow
-
-1. **Make code changes** in your IDE (VS Code recommended)
-2. **Compile**: `compile.bat`
-3. **Run**: `run.bat`
-4. **Test** the desktop application functionality
-
-### VS Code Development Setup
-
-1. **Open project in VS Code**
-2. **Install recommended extensions**:
-   - Extension Pack for Java
-   - JavaFX Support
-
-3. **Configure JavaFX paths** in `.vscode/settings.json`:
-   ```json
-   {
-     "java.project.sourcePaths": ["src/main/java"],
-     "java.project.referencedLibraries": ["lib/**/*.jar"]
-   }
+2. **Access the application**
+   Open your web browser and navigate to:
    ```
+   http://localhost:8080
+   ```
+
+### Running Tests
+
+To run the test suite:
+```bash
+test.bat
+```
+
+### Cleaning Build Artifacts
+
+To clean up compiled files and temporary directories:
+```bash
+clean.bat
+```
 
 ## Project Structure
 
 ```
-Online Shopping Desktop Application/
-├── src/main/
-│   ├── java/com/shopping/
-│   │   ├── ShoppingApplication.java    # Main JavaFX application class
-│   │   ├── MainController.java         # UI controller for main view
-│   │   ├── model/                      # Data models (Product, User, Order, Cart)
-│   │   │   ├── Product.java
-│   │   │   ├── User.java
-│   │   │   ├── Order.java
-│   │   │   ├── OrderItem.java
-│   │   │   └── Cart.java
-│   │   ├── service/                    # Business logic layer
-│   │   │   └── ShoppingService.java
-│   │   └── data/                       # Data access layer
-│   │       └── FileHandler.java
-│   └── resources/
-│       ├── fxml/
-│       │   └── MainView.fxml           # Main application layout
-│       ├── css/
-│       │   └── application.css         # JavaFX styling (preserved original design)
-│       └── images/                     # Product images (moved from web/Photos/)
-├── lib/                                # JavaFX SDK libraries
-├── target/classes/                     # Compiled Java classes
-├── *.txt                               # CSV data files (products.txt, users.txt, orders.txt)
-├── compile.bat                         # Build script with JavaFX support
-├── run.bat                             # Run script for JavaFX application
-└── README.md                           # This documentation
+/
+├── bin/                    # Compiled Java classes
+├── bin-test/               # Compiled test classes
+├── src/
+│   ├── main/
+│   │   ├── java/          # Java source files
+│   │   │   └── com/shopping/
+│   │   │       ├── config/ # Configuration classes
+│   │   │       ├── data/   # Data access layer
+│   │   │       ├── model/  # Data models
+│   │   │       ├── util/   # Utility classes
+│   │   │       └── ServerMain.java  # Main server class
+│   │   └── resources/     # Resource files
+│   └── test/              # Test source files
+├── web/                   # Frontend files
+│   ├── css/               # Stylesheets
+│   ├── js/                # JavaScript files
+│   └── *.html             # HTML pages
+├── build.bat              # Build script
+├── run.bat                # Run script
+├── test.bat               # Test script
+└── clean.bat              # Clean script
 ```
 
-## Key Components
+## Configuration
 
-### Desktop Interface (JavaFX)
-- **ShoppingApplication.java**: Main JavaFX application entry point
-- **MainView.fxml**: FXML layout definition for the main window
-- **MainController.java**: Java controller handling UI events and business logic integration
-- **application.css**: JavaFX CSS styling preserving original web design colors and layout
+Server configuration can be modified by setting environment variables or creating an `app.properties` file in the root directory.
 
-### Business Logic (Preserved from Web Version)
-- **ShoppingService.java**: Core business logic for product management, cart operations, and order processing
-- **FileHandler.java**: CSV file I/O operations for data persistence
-- **Data Models**: Product, User, Order, OrderItem, Cart classes with identical functionality
+Example `app.properties`:
+```properties
+# Server configuration
+server.port=8080
+server.host=127.0.0.1
 
-### Data Persistence (Unchanged)
-- **CSV-based storage** using the same text files (products.txt, users.txt, orders.txt)
-- **Same FileHandler** class for reading/writing CSV data
-- **Identical data format** - no changes to data structure or storage logic
+# File paths
+users.file=users.txt
+products.file=products.txt
+orders.file=orders.txt
 
-## Design Preservation
+# Security
+jwt.secret=your-secret-key
+jwt.expiration.ms=86400000  # 24 hours
 
-### Visual Design Transformation
+# CORS (comma-separated list of allowed origins)
+cors.allowed.origins=http://localhost:8080,http://127.0.0.1:8080
+```
 
-**Original Web Design Elements → JavaFX CSS:**
-- ✅ **Color Scheme**: `#f5f5f5` background, `#2c3e50` branding colors preserved
-- ✅ **Layout Structure**: Product grid, navigation bar, search functionality maintained
-- ✅ **Typography**: Segoe UI font family, same sizing and hierarchy
-- ✅ **Interactive Effects**: Hover animations, button styling, shadows replicated
-- ✅ **Product Images**: All 15 product images properly mapped and displayed
+## Development
 
-### HTML Pages → JavaFX Screens
+### Adding New Features
+1. Create a new branch for your feature
+2. Make your changes
+3. Add tests for your changes
+4. Run tests to ensure everything works
+5. Submit a pull request
 
-| **Original HTML Pages** | **JavaFX Implementation** | **Navigation Pattern** |
-|------------------------|---------------------------|------------------------|
-| `index.html` (Login) | Login screen (if needed) or direct main view | Single window, view switching |
-| `homepage.html` (Products) | Main shopping view with product grid | Same window, content sections |
-| `Viewing cart.html` | Cart sidebar (always visible) | Sidebar component, instant access |
-| `checkout.html` | Modal checkout dialog | Popup dialog, focused workflow |
-
-## Development Notes
-
-### Preserved Elements (Critical - Do Not Modify)
-- **Business Logic**: `ShoppingService.java` and data models unchanged
-- **Data Persistence**: CSV file format and `FileHandler.java` identical
-- **Core Functionality**: Product search, cart operations, order processing preserved
-
-### Modified Elements (Desktop Adaptation)
-- **UI Framework**: HTML/CSS/JS → JavaFX/FXML/CSS
-- **Navigation**: Page-based → Component-based in single window
-- **Event Handling**: DOM events → JavaFX event handlers
-- **Image Loading**: HTTP image URLs → Local resource loading
-
-### Testing Accounts (Unchanged)
-- Admin: admin/admin123
-- User: test/test123
-
-## Troubleshooting
-
-### JavaFX Setup Issues
-1. **Verify JavaFX SDK path** in build scripts matches installation location
-2. **Check module path** includes JavaFX libraries in `compile.bat` and `run.bat`
-3. **Update JDK version** if using different Java version than 17
-
-### Application Issues
-1. **Data file location**: Ensure CSV files are in project root
-2. **Image resources**: Product images should be in `src/main/resources/images/`
-3. **Build errors**: Run `compile.bat` before `run.bat`
-
-## Contributing
-
-The desktop version maintains the same core functionality as the original web application while providing a native desktop experience. When making changes:
-
-1. **Preserve business logic** in service and model classes
-2. **Maintain data persistence** CSV format and FileHandler functionality
-3. **Update JavaFX UI components** in FXML files and controllers
-4. **Test desktop-specific features** like window management and native dialogs
+### Debugging
+- Server logs are output to the console
+- Check the browser's developer console for frontend errors
+- Use the browser's network tab to inspect API requests/responses
 
 ## License
 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Features
+- User authentication and management
+- Product browsing with detailed descriptions
+- Category filtering and text search (in the GUI components)
+- Shopping cart and checkout (GUI) with stock updates and order persistence
+- File-based order management; CLI order history view is coming soon
+- Data persistence via CSV-like text files
+
+## Project Structure
+```
+OnlineShoppingApp/
+├── README.md
+├── compile.bat
+├── run.bat
+├── products.txt
+├── users.txt
+├── orders.txt
+└── src/
+    └── com/shopping/
+        ├── OnlineShoppingApp.java            # CLI entrypoint (main)
+        ├── data/
+        │   └── FileHandler.java              # File I/O and parsing
+        ├── model/
+        │   ├── Product.java
+        │   ├── User.java
+        │   └── Order.java
+        └── ui/
+            ├── LoginUi/                      # Login/register dialog
+            ├── MainProgram/                  # MainFrame container
+            ├── ProductUi/                    # Product listing/search
+            ├── CartUi/                       # Cart sidebar and view
+            └── CheckOutUi/                   # Checkout dialog
+```
+
+Note: The project contains duplicate data files both at the repository root and under `src/`. Which set is used depends on the working directory when you run the app (see below).
+
+## Setup Instructions
+1. Ensure you have the Java Development Kit (JDK) installed.
+2. Option A — Using the provided scripts (Windows):
+   - Double-click `compile.bat` to compile.
+   - Double-click `run.bat` to launch the CLI app.
+   - These scripts change the working directory to `src`, so the app will read/write `products.txt`, `users.txt`, and `orders.txt` located under `src/`.
+3. Option B — Manual compile/run:
+   - From the project root:
+     ```
+     javac -Xlint:none src/com/shopping/OnlineShoppingApp.java src/com/shopping/data/FileHandler.java src/com/shopping/model/*.java src/com/shopping/ui/CartUi/*.java src/com/shopping/ui/CheckOutUi/*.java src/com/shopping/ui/LoginUi/*.java src/com/shopping/ui/ProductUi/*.java src/com/shopping/ui/MainProgram/*.java
+     ```
+   - To run the CLI app with `src` as the working directory:
+     ```
+     cd src
+     java com.shopping.OnlineShoppingApp
+     ```
+     Running from `src` ensures the app uses the data files inside `src/`.
+
+## Usage Guidelines
+- CLI application (default):
+  - Register or log in via the console prompts.
+  - View and search products.
+  - You can simulate placing an order by selecting a product and quantity; CLI order history display is planned.
+- GUI components (compiled, not launched by default):
+  - The Swing UI includes `LoginDialog`, `MainFrame`, `ProductPanel`, `CartPanel`, and `CheckoutDialog`.
+  - Checkout in the GUI persists orders to `orders.txt` and updates product stock in `products.txt` via `FileHandler`.
+
+## Contributing
+Contributions are welcome! Please feel free to submit a pull request or open an issue for any suggestions or improvements.
+
+## License
 This project is licensed under the MIT License.
