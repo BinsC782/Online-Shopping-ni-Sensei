@@ -5,8 +5,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import com.shopping.service.ShoppingService;
 import com.shopping.data.FileHandler;
+import com.shopping.service.ShoppingService;
+
 import java.io.IOException;
 
 /**
@@ -16,79 +17,57 @@ import java.io.IOException;
 public class ShoppingApplication extends Application {
 
     private ShoppingService shoppingService;
-
     @Override
     public void init() throws Exception {
         super.init();
-        System.out.println("=== Initializing ShoppingApplication ===");
-
-        try {
-            // Initialize the shopping service with file handler
-            FileHandler fileHandler = new FileHandler();
-            this.shoppingService = new ShoppingService(fileHandler);
-            System.out.println("ShoppingService initialized successfully");
-        } catch (Exception e) {
-            System.err.println("Failed to initialize ShoppingService: " + e.getMessage());
-            e.printStackTrace();
-            throw e; // Re-throw to prevent application startup
-        }
+        // Initialize the shopping service with file handler
+        FileHandler fileHandler = new FileHandler();
+        fileHandler.initializeDataFiles();
+        this.shoppingService = new ShoppingService(fileHandler);
     }
 
     @Override
     public void start(Stage primaryStage) {
-        System.out.println("=== Starting JavaFX Application ===");
-
         try {
-            // Load the FXML file
+            // Load the main FXML layout
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/fxml/MainView.fxml"));
-            System.out.println("Loading FXML from: " + getClass().getResource("/fxml/MainView.fxml"));
-
             Parent root = loader.load();
-            System.out.println("FXML loaded successfully");
 
-            // Get the controller and set the shopping service
+            // Get the controller and pass the shopping service
             MainController controller = loader.getController();
-            System.out.println("Controller loaded: " + (controller != null ? "SUCCESS" : "FAILED"));
+            controller.setShoppingService(shoppingService);
 
-            if (controller != null && shoppingService != null) {
-                controller.setShoppingService(shoppingService);
-                System.out.println("ShoppingService injected successfully");
-            } else {
-                System.err.println("ERROR: Controller or ShoppingService is null");
-                System.err.println("Controller: " + controller);
-                System.err.println("ShoppingService: " + shoppingService);
-            }
-
-            // Create scene and apply CSS
+            // Create the scene with CSS styling
             Scene scene = new Scene(root, 1200, 800);
-            String cssPath = getClass().getResource("/css/application.css").toExternalForm();
-            if (cssPath != null) {
-                scene.getStylesheets().add(cssPath);
-                System.out.println("CSS loaded successfully");
-            } else {
-                System.err.println("WARNING: CSS file not found");
-            }
 
-            // Configure stage
-            primaryStage.setTitle("🛒 Online Shopping Application");
+            // Load CSS stylesheets (these will be created from your existing CSS)
+            scene.getStylesheets().add(getClass().getResource("/css/application.css").toExternalForm());
+
+            // Configure the primary stage
+            primaryStage.setTitle("Online Shopping Application");
             primaryStage.setScene(scene);
             primaryStage.setMinWidth(1000);
             primaryStage.setMinHeight(700);
+
+            // Set application icon (optional)
+            // primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/images/app-icon.png")));
+
+            // Show the application
             primaryStage.show();
 
-            System.out.println("Application started successfully");
-
-        } catch (Exception e) {
-            System.err.println("Failed to start application: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Failed to load application: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
 
-            // Show error dialog
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.setTitle("Application Error");
-            alert.setHeaderText("Failed to Load Application");
-            alert.setContentText("The application could not be started due to an error:\n" + e.getMessage());
-            alert.showAndWait();
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        // Clean up resources if needed
+        if (shoppingService != null) {
+            // Add any cleanup logic here
         }
     }
 
@@ -96,7 +75,6 @@ public class ShoppingApplication extends Application {
      * Main method to launch the JavaFX application
      */
     public static void main(String[] args) {
-        System.out.println("=== Launching Shopping Application ===");
         launch(args);
     }
 }

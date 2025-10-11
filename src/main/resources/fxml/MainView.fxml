@@ -5,81 +5,99 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shopping.MainController">
-   <!-- Header Section -->
-   <children>
-      <!-- Top Navigation Bar -->
-      <HBox fx:id="headerBar" alignment="CENTER_LEFT" spacing="20.0" styleClass="header-bar">
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shopping.MainController">
+   <top>
+      <!-- Navigation Bar -->
+      <VBox fx:id="navigationBar" styleClass="navbar">
          <children>
-            <!-- Logo/Brand -->
-            <Label fx:id="logoLabel" text="🛒 PowerPuffGirls Shopping" styleClass="logo-label">
-               <font>
-                  <Font name="System Bold" size="24.0" />
-               </font>
-               <HBox.margin>
-                  <Insets left="20.0" />
-               </HBox.margin>
-            </Label>
-
-            <!-- Spacer to push search to center -->
-            <Region HBox.hgrow="ALWAYS" />
-
-            <!-- Search Section -->
-            <HBox fx:id="searchSection" alignment="CENTER" spacing="10.0" styleClass="search-section">
+            <HBox alignment="CENTER_LEFT" spacing="20.0">
                <children>
-                  <TextField fx:id="searchField" promptText="Search products..." prefWidth="350.0" styleClass="search-field" />
-                  <Button fx:id="searchButton" text="🔍 Search" styleClass="search-button" />
+                  <!-- Logo/Title -->
+                  <Label fx:id="logoLabel" text="🛒 Online Shopping">
+                     <font>
+                        <Font name="System Bold" size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="20.0" />
+                     </HBox.margin>
+                  </Label>
+
+                  <!-- Spacer -->
+                  <Region HBox.hgrow="ALWAYS" />
+
+                  <!-- Search Bar -->
+                  <HBox fx:id="searchBar" alignment="CENTER_LEFT" spacing="10.0" styleClass="search-container">
+                     <children>
+                        <TextField fx:id="searchField" promptText="Search products..." prefWidth="300.0" />
+                        <Button fx:id="searchButton" text="Search" styleClass="search-button" />
+                     </children>
+                  </HBox>
+
+                  <!-- Spacer -->
+                  <Region HBox.hgrow="SOMETIMES" />
+
+                  <!-- Cart and Checkout -->
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                     <children>
+                        <Label fx:id="cartTotalLabel" text="Total: $0.00" styleClass="cart-total" />
+                        <Button fx:id="checkoutButton" text="Checkout" styleClass="checkout-button" />
+                     </children>
+                     <HBox.margin>
+                        <Insets right="20.0" />
+                     </HBox.margin>
+                  </HBox>
                </children>
             </HBox>
 
-            <!-- Spacer -->
-            <Region HBox.hgrow="SOMETIMES" />
-
-            <!-- User Actions -->
-            <HBox alignment="CENTER_RIGHT" spacing="15.0" styleClass="user-actions">
+            <!-- Categories Bar -->
+            <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="categories-bar">
                <children>
-                  <Label fx:id="cartTotalLabel" text="Total: $0.00" styleClass="cart-total-label" />
-                  <Button fx:id="checkoutButton" text="🛒 Checkout" styleClass="checkout-button" />
-                  <Button fx:id="logoutButton" text="Logout" styleClass="logout-button" />
+                  <Label text="Categories:" styleClass="categories-label" />
+                  <Button text="All" styleClass="category-button, active-category" />
+                  <Button text="Electronics" styleClass="category-button" />
+                  <Button text="Clothing" styleClass="category-button" />
+                  <Button text="Books" styleClass="category-button" />
                </children>
-               <HBox.margin>
-                  <Insets right="20.0" />
-               </HBox.margin>
+               <VBox.margin>
+                  <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+               </VBox.margin>
             </HBox>
          </children>
-         <VBox.margin>
-            <Insets bottom="10.0" />
-         </VBox.margin>
-      </HBox>
+      </VBox>
+   </top>
 
-      <!-- Category Navigation -->
-      <HBox fx:id="categoryBar" alignment="CENTER_LEFT" spacing="15.0" styleClass="category-bar">
-         <children>
-            <Label text="Categories:" styleClass="categories-label">
-               <font>
-                  <Font name="System Bold" size="14.0" />
-               </font>
-            </Label>
-            <ToggleButton fx:id="allCategoriesBtn" text="All Categories" styleClass="category-button, active-category" selected="true" />
-            <ToggleButton fx:id="accessoriesBtn" text="Accessories" styleClass="category-button" />
-            <ToggleButton fx:id="homeLifestyleBtn" text="Home &amp; Lifestyle" styleClass="category-button" />
-            <ToggleButton fx:id="electronicsBtn" text="Electronics" styleClass="category-button" />
-            <ToggleButton fx:id="fashionBtn" text="Fashion" styleClass="category-button" />
-         </children>
-         <VBox.margin>
-            <Insets bottom="15.0" left="20.0" right="20.0" top="10.0" />
-         </VBox.margin>
-      </HBox>
-
-      <!-- Products Display Area -->
-      <ScrollPane fx:id="productsScrollPane" fitToWidth="true" fitToHeight="true" styleClass="products-scroll-pane">
+   <center>
+      <!-- Main Content Area -->
+      <ScrollPane fitToWidth="true" fitToHeight="true">
          <content>
-            <TilePane fx:id="productGrid" alignment="TOP_LEFT" hgap="20.0" vgap="20.0" prefColumns="4" styleClass="product-grid">
+            <FlowPane fx:id="productContainer" alignment="TOP_LEFT" hgap="20.0" vgap="20.0" styleClass="products-container">
                <padding>
                   <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                </padding>
-            </TilePane>
+            </FlowPane>
          </content>
       </ScrollPane>
-   </children>
-</VBox>
+   </center>
+
+   <right>
+      <!-- Cart Panel (can be expanded to show cart details) -->
+      <VBox fx:id="cartPanel" prefWidth="250.0" styleClass="cart-sidebar">
+         <children>
+            <Label text="Shopping Cart" styleClass="cart-title">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+               <VBox.margin>
+                  <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+               </VBox.margin>
+            </Label>
+            <Separator />
+            <Label text="Cart items will be displayed here" styleClass="cart-placeholder">
+               <VBox.margin>
+                  <Insets bottom="10.0" left="15.0" right="15.0" top="10.0" />
+               </VBox.margin>
+            </Label>
+         </children>
+      </VBox>
+   </right>
+</BorderPane>
