@@ -210,7 +210,7 @@ public class MainController implements Initializable {
 
         // Product 1: Laptop
         Product laptop = new Product("000001", "Attack Shark Keyboard", 999.99, 10);
-        laptop.setDescription("A Keyboard");
+        laptop.setDescription("High-performance laptop with 16GB RAM");
         laptop.setCategory("Electronics");
         laptop.setSellerName("TechStore");
         laptop.setSellerLocation("New York");
@@ -220,7 +220,7 @@ public class MainController implements Initializable {
         products.add(laptop);
 
         // Product 2: Smartphone
-        Product smartphone = new Product("000002", "iPhone 16 for the burgis", 699.99, 15);
+        Product smartphone = new Product("000002", "Smartphone", 699.99, 15);
         smartphone.setDescription("Latest smartphone with 128GB storage");
         smartphone.setCategory("Electronics");
         smartphone.setSellerName("MobileHub");
@@ -231,7 +231,7 @@ public class MainController implements Initializable {
         products.add(smartphone);
 
         // Product 3: Headphones
-        Product headphones = new Product("000003", "Apple Airpods for the burgis", 199.99, 20);
+        Product headphones = new Product("000003", "Headphones", 199.99, 20);
         headphones.setDescription("Wireless noise-cancelling headphones");
         headphones.setCategory("Electronics");
         headphones.setSellerName("AudioWorld");
@@ -242,7 +242,7 @@ public class MainController implements Initializable {
         products.add(headphones);
 
         // Product 4: Tablet
-        Product tablet = new Product("000004", "ASUS Gaming Monitor", 399.99, 8);
+        Product tablet = new Product("000004", "Tablet", 399.99, 8);
         tablet.setDescription("10-inch tablet with stylus support");
         tablet.setCategory("Electronics");
         tablet.setSellerName("TabletPro");
@@ -253,7 +253,7 @@ public class MainController implements Initializable {
         products.add(tablet);
 
         // Product 5: Smartwatch
-        Product smartwatch = new Product("000005", "Casio Watch", 299.99, 12);
+        Product smartwatch = new Product("000005", "Smartwatch", 299.99, 12);
         smartwatch.setDescription("Fitness tracking smartwatch");
         smartwatch.setCategory("Electronics");
         smartwatch.setSellerName("WearTech");
@@ -263,10 +263,19 @@ public class MainController implements Initializable {
         smartwatch.setImage("Casio Watch.jpg");
         products.add(smartwatch);
 
-      
+        // Product 6: Keyboard
+        Product keyboard = new Product("000006", "Mechanical Keyboard", 79.99, 25);
+        keyboard.setDescription("Mechanical gaming keyboard");
+        keyboard.setCategory("Accessories");
+        keyboard.setSellerName("GameGear");
+        keyboard.setSellerLocation("Nevada");
+        keyboard.setRating(4.2);
+        keyboard.setReviews("Reliable for gaming sessions");
+        keyboard.setImage("Attack Shark Keyboard.png");
+        products.add(keyboard);
 
         // Product 7: Mouse
-        Product mouse = new Product("000007", "Garuda Hawk wireless mouse", 49.99, 30);
+        Product mouse = new Product("000007", "Wireless Mouse", 49.99, 30);
         mouse.setDescription("Wireless ergonomic mouse");
         mouse.setCategory("Accessories");
         mouse.setSellerName("PeriTech");
@@ -276,10 +285,19 @@ public class MainController implements Initializable {
         mouse.setImage("GarudaHawk.jpg");
         products.add(mouse);
 
- 
+        // Product 8: Monitor
+        Product monitor = new Product("000008", "4K Monitor", 249.99, 5);
+        monitor.setDescription("27-inch 4K monitor");
+        monitor.setCategory("Electronics");
+        monitor.setSellerName("DisplayCorp");
+        monitor.setSellerLocation("Georgia");
+        monitor.setRating(4.8);
+        monitor.setReviews("Stunning visuals and color accuracy");
+        monitor.setImage("AsusMonitor.jpg");
+        products.add(monitor);
 
         // Product 9: Printer
-        Product printer = new Product("000009", "PC Case ", 149.99, 7);
+        Product printer = new Product("000009", "Wireless Printer", 149.99, 7);
         printer.setDescription("All-in-one wireless printer");
         printer.setCategory("Electronics");
         printer.setSellerName("PrintMaster");
@@ -289,8 +307,19 @@ public class MainController implements Initializable {
         printer.setImage("PcCase.jpg");
         products.add(printer);
 
+        // Product 11: Gaming Headset
+        Product headset = new Product("000011", "Gaming Headset", 89.99, 18);
+        headset.setDescription("Professional gaming headset with surround sound");
+        headset.setCategory("Electronics");
+        headset.setSellerName("GameAudio");
+        headset.setSellerLocation("Oregon");
+        headset.setRating(4.4);
+        headset.setReviews("Excellent sound quality for gaming");
+        headset.setImage("Airpods.jpg");
+        products.add(headset);
+
         // Product 12: External SSD
-        Product ssd = new Product("000012", "Kingston SSD 1TB", 129.99, 14);
+        Product ssd = new Product("000012", "External SSD 1TB", 129.99, 14);
         ssd.setDescription("Portable 1TB external SSD drive");
         ssd.setCategory("Electronics");
         ssd.setSellerName("StoragePro");
@@ -301,7 +330,7 @@ public class MainController implements Initializable {
         products.add(ssd);
 
         // Product 13: Camera Bag
-        Product cameraBag = new Product("000013", "Orange Laptop Bag", 79.99, 22);
+        Product cameraBag = new Product("000013", "Professional Camera Bag", 79.99, 22);
         cameraBag.setDescription("Waterproof camera bag with multiple compartments");
         cameraBag.setCategory("Accessories");
         cameraBag.setSellerName("PhotoGear");
@@ -323,7 +352,7 @@ public class MainController implements Initializable {
         products.add(sunglasses);
 
         // Product 15: Casual Shoes
-        Product casualShoes = new Product("000015", "Crocs Slippers", 49.99, 40);
+        Product casualShoes = new Product("000015", "Casual Canvas Shoes", 49.99, 40);
         casualShoes.setDescription("Comfortable canvas shoes for everyday wear");
         casualShoes.setCategory("Fashion");
         casualShoes.setSellerName("FootwearCo");
@@ -334,7 +363,7 @@ public class MainController implements Initializable {
         products.add(casualShoes);
 
         // Product 16: Hoodie
-        Product hoodie = new Product("000016", "NU Jacket", 39.99, 28);
+        Product hoodie = new Product("000016", "Cotton Hoodie", 39.99, 28);
         hoodie.setDescription("Soft cotton hoodie with front pocket");
         hoodie.setCategory("Fashion");
         hoodie.setSellerName("CasualWear");
@@ -345,7 +374,7 @@ public class MainController implements Initializable {
         products.add(hoodie);
 
         // Product 17: Cotton Socks
-        Product cottonSocks = new Product("000017", "Nice Black Socks", 14.99, 50);
+        Product cottonSocks = new Product("000017", "Cotton Athletic Socks", 14.99, 50);
         cottonSocks.setDescription("Pack of 6 cotton athletic socks");
         cottonSocks.setCategory("Fashion");
         cottonSocks.setSellerName("ComfortWear");
@@ -356,27 +385,92 @@ public class MainController implements Initializable {
         products.add(cottonSocks);
 
         // Product 18: Coffee Maker
-        Product aquaFlask = new Product("000018", "AquaFlask", 89.99, 12);
-        aquaFlask.setDescription("12-cup programmable coffee maker with timer");
-        aquaFlask.setCategory("Home & Lifestyle");
-        aquaFlask.setSellerName("KitchenEssentials");
-        aquaFlask.setSellerLocation("Texas");
-        aquaFlask.setRating(4.4);
-        aquaFlask.setReviews("Makes great coffee with easy programming");
-        aquaFlask.setImage("ThermFlask.jpg");
-        products.add(aquaFlask);
+        Product coffeeMaker = new Product("000018", "Programmable Coffee Maker", 89.99, 12);
+        coffeeMaker.setDescription("12-cup programmable coffee maker with timer");
+        coffeeMaker.setCategory("Home & Lifestyle");
+        coffeeMaker.setSellerName("KitchenEssentials");
+        coffeeMaker.setSellerLocation("Texas");
+        coffeeMaker.setRating(4.4);
+        coffeeMaker.setReviews("Makes great coffee with easy programming");
+        coffeeMaker.setImage("ThermFlask.jpg");
+        products.add(coffeeMaker);
 
         // Product 19: Bluetooth Speaker
-        Product bluetoothSpeaker = new Product("000019", "Adidas Samba Shoes", 69.99, 20);
+        Product bluetoothSpeaker = new Product("000019", "Portable Bluetooth Speaker", 69.99, 20);
         bluetoothSpeaker.setDescription("Waterproof portable Bluetooth speaker");
         bluetoothSpeaker.setCategory("Electronics");
         bluetoothSpeaker.setSellerName("AudioTech");
         bluetoothSpeaker.setSellerLocation("Florida");
         bluetoothSpeaker.setRating(4.5);
         bluetoothSpeaker.setReviews("Great sound quality and battery life");
-        bluetoothSpeaker.setImage("Adidas_Samba-removebg-preview.png");
+        bluetoothSpeaker.setImage("Airpods.jpg");
         products.add(bluetoothSpeaker);
 
+        // Product 20: Yoga Mat
+        Product yogaMat = new Product("000020", "Premium Yoga Mat", 34.99, 25);
+        yogaMat.setDescription("Non-slip premium yoga mat 6mm thick");
+        yogaMat.setCategory("Sports & Outdoors");
+        yogaMat.setSellerName("FitnessGear");
+        yogaMat.setSellerLocation("Georgia");
+        yogaMat.setRating(4.2);
+        yogaMat.setReviews("Perfect grip and comfortable for yoga practice");
+        yogaMat.setImage("GarudaHawk.jpg");
+        products.add(yogaMat);
+
+        // Product 21: Water Bottle
+        Product waterBottle = new Product("000021", "Insulated Water Bottle", 24.99, 30);
+        waterBottle.setDescription("Stainless steel insulated water bottle 32oz");
+        waterBottle.setCategory("Sports & Outdoors");
+        waterBottle.setSellerName("HydrationPro");
+        waterBottle.setSellerLocation("Illinois");
+        waterBottle.setRating(4.3);
+        waterBottle.setReviews("Keeps drinks cold for 24 hours");
+        waterBottle.setImage("ThermFlask.jpg");
+        products.add(waterBottle);
+
+        // Product 22: Desk Lamp
+        Product deskLamp = new Product("000022", "LED Desk Lamp", 45.99, 15);
+        deskLamp.setDescription("Adjustable LED desk lamp with wireless charging");
+        deskLamp.setCategory("Home & Lifestyle");
+        deskLamp.setSellerName("HomeLighting");
+        deskLamp.setSellerLocation("Michigan");
+        deskLamp.setRating(4.1);
+        deskLamp.setReviews("Bright LED light with phone charging base");
+        deskLamp.setImage("AsusMonitor.jpg");
+        products.add(deskLamp);
+
+        // Product 23: Backpack
+        Product backpack = new Product("000023", "Laptop Backpack", 79.99, 18);
+        backpack.setDescription("Waterproof laptop backpack with USB charging port");
+        backpack.setCategory("Accessories");
+        backpack.setSellerName("TravelGear");
+        backpack.setSellerLocation("New York");
+        backpack.setRating(4.4);
+        backpack.setReviews("Comfortable and spacious for daily commute");
+        backpack.setImage("FstopperBag.jpg");
+        products.add(backpack);
+
+        // Product 24: Wireless Charger
+        Product wirelessCharger = new Product("000024", "Fast Wireless Charger", 29.99, 35);
+        wirelessCharger.setDescription("Fast wireless charging pad for smartphones");
+        wirelessCharger.setCategory("Electronics");
+        wirelessCharger.setSellerName("ChargeTech");
+        wirelessCharger.setSellerLocation("Pennsylvania");
+        wirelessCharger.setRating(4.0);
+        wirelessCharger.setReviews("Quick charging with safety features");
+        wirelessCharger.setImage("KingstonSSD.jpg");
+        products.add(wirelessCharger);
+
+        // Product 25: Fitness Tracker
+        Product fitnessTracker = new Product("000025", "Fitness Activity Tracker", 99.99, 22);
+        fitnessTracker.setDescription("Advanced fitness tracker with heart rate monitor");
+        fitnessTracker.setCategory("Electronics");
+        fitnessTracker.setSellerName("HealthTech");
+        fitnessTracker.setSellerLocation("Ohio");
+        fitnessTracker.setRating(4.5);
+        fitnessTracker.setReviews("Accurate tracking for all activities");
+        fitnessTracker.setImage("Casio Watch.jpg");
+        products.add(fitnessTracker);
 
         return products;
     }
