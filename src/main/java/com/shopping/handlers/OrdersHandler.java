@@ -9,7 +9,6 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class OrdersHandler implements HttpHandler {
@@ -25,52 +24,52 @@ public class OrdersHandler implements HttpHandler {
             String method = exchange.getRequestMethod();
             String path = exchange.getRequestURI().getPath();
             ServerMain.logRequest(method, path);
-            
+
             // Get username from session
             String sessionId = ServerMain.getSessionId(exchange);
             String username = ServerMain.getUsernameFromSession(sessionId);
-            
+
             if (username == null) {
                 ServerMain.sendJsonResponse(exchange, 401, "{\"error\":\"Unauthorized\"}");
                 return;
             }
-            
+
             switch (method) {
                 case "GET":
                     // Get user's orders
                     List<Order> orders = shoppingService.getUserOrders(username);
-                    String jsonResponse = "{\"orders\":" + ServerMain.toJson(orders) + "}";
-                    ServerMain.sendJsonResponse(exchange, 200, jsonResponse);
+                    String json = ServerMain.toJsonOrders(orders);
+                    ServerMain.sendJsonResponse(exchange, 200, json);
                     break;
-                    
+
                 case "POST":
                     // Place order from cart
                     List<OrderItem> cartItems = shoppingService.getUserCart(username);
-                    if (cartItems == null || cartItems.isEmpty()) {
+                    if (cartItems.isEmpty()) {
                         ServerMain.sendJsonResponse(exchange, 400, "{\"error\":\"Cart is empty\"}");
                         return;
                     }
-                    
+
                     String orderId = "ord_" + UUID.randomUUID().toString();
-                    Order order = shoppingService.placeOrder(username, cartItems);
-                    
-                    if (order != null) {
+                    ShoppingService.OrderResult orderResult = shoppingService.placeOrder(username, cartItems);
+
+                    if (orderResult != null && "success".equals(orderResult.status)) {
                         shoppingService.clearUserCart(username);
-                        ServerMain.sendJsonResponse(exchange, 201, 
+                        ServerMain.sendJsonResponse(exchange, 201,
                             "{\"status\":\"success\",\"orderId\":\"" + orderId + "\"}");
                     } else {
                         ServerMain.sendJsonResponse(exchange, 500, "{\"error\":\"Failed to place order\"}");
                     }
                     break;
-                    
+
                 default:
                     ServerMain.sendStatus(exchange, 405, "Method Not Allowed");
+                    break;
             }
-            
         } catch (Exception e) {
             e.printStackTrace();
             String errorJson = String.format(
-                "{\"error\":\"Order operation failed: %s\"}", 
+                "{\"error\":\"Order operation failed: %s\"}",
                 ServerMain.escape(e.getMessage())
             );
             ServerMain.sendJsonResponse(exchange, 500, errorJson);

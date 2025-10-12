@@ -40,119 +40,28 @@
   <!-- Products Grid -->
   <section class="products" id="products-container">
     <!-- Products will be dynamically loaded here -->
-    <div class="product-card">
-      <img src="Photos/GarudaHawk.jpg" alt="mouse">
-      <div class="product-info">
-        <h3>Garuda Wireless Mouse</h3>
-        <p>$9.99</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/Casio Watch.jpg" alt="watch">
-      <div class="product-info">
-        <h3>Casio Watch</h3>
-        <p>$29.50</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/Iphone 16.jpg" alt="iPhone">
-      <div class="product-info">
-        <h3>iPhone 16</h3>
-        <p>$749</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/NU jacket.jpg" alt="jacket">
-      <div class="product-info">
-        <h3>Varsity Jacket</h3>
-        <p>$4.49</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/Airpods.jpg" alt="earpods">
-      <div class="product-info">
-        <h3>Apple Earpods</h3>
-        <p>$299</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/Crocs.jpg" alt="crocs">
-      <div class="product-info">
-        <h3>Crocs</h3>
-        <p>$49</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/Adidas_Samba-removebg-preview.png" alt="adidas">
-      <div class="product-info">
-        <h3>Adidas Samba</h3>
-        <p>$59</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/FstopperBag.jpg" alt="Fstoppers Shoulder Bag">
-      <div class="product-info">
-        <h3>Fstoppers Shoulder Bag</h3>
-        <p>$19.99</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/Sunglass.jpg" alt="Sunglasses">
-      <div class="product-info">
-        <h3>Sunglasses</h3>
-        <p>$9.99</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/ThermFlask.jpg" alt="Thermos Flask">
-      <div class="product-info">
-        <h3>Thermos Flask</h3>
-        <p>$29.50</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/Socks.jpg" alt="Iconic Socks">
-      <div class="product-info">
-        <h3>Iconic Socks</h3>
-        <p>$4.49</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/AsusMonitor.jpg" alt="Asus Monitor">
-      <div class="product-info">
-        <h3>Asus Monitor</h3>
-        <p>$749</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/KingstonSSD.jpg" alt="Kingston NVME SSD">
-      <div class="product-info">
-        <h3>Kingston NVME SSD</h3>
-        <p>$299</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
-    <div class="product-card">
-      <img src="Photos/PcCase.jpg" alt="PC Case">
-      <div class="product-info">
-        <h3>PC Case</h3>
-        <p>$49</p>
-        <span>★★★★★</span>
-      </div>
-    </div>
   </section>
+
+  <!-- Product Card Template -->
+  <template id="product-card-template">
+    <article class="product-card" data-product-id="">
+      <div class="product-image">
+        <img src="Photos/placeholder.jpg" alt="" loading="lazy">
+      </div>
+      <div class="product-info">
+        <h3 class="product-title"></h3>
+        <div class="product-meta">
+          <span class="price"></span>
+          <div class="rating" aria-label="Rating: out of 5">
+            <span class="sr-only"> out of 5 stars</span>
+          </div>
+        </div>
+        <button class="btn add-to-cart" aria-label="Add to cart">
+          Add to Cart
+        </button>
+      </div>
+    </article>
+  </template>
 
   <!-- Product Modal -->
   <div id="product-modal" class="modal">
@@ -186,6 +95,7 @@
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script src="js/api-service.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

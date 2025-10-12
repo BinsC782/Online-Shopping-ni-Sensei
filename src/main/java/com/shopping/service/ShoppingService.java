@@ -22,14 +22,105 @@ public class ShoppingService {
     
     public ShoppingService(FileHandler fileHandler) {
         this.fileHandler = fileHandler;
-        try {
-            this.fileHandler.initializeDataFiles();
-            loadCartsFromFile();
-        } catch (IOException e) {
-            System.err.println("Error initializing ShoppingService: " + e.getMessage());
-        }
+        // FileHandler constructor already initializes data files
+        // No need to call initializeDataFiles() again
+        loadCartsFromFile();
     }
 
+    /**
+     * Returns hardcoded product data for initial application setup
+     * @return List of hardcoded products
+     */
+    private List<Product> getHardcodedProducts() {
+        List<Product> products = new ArrayList<>();
+
+        products.add(new Product("000001", "Garuda Wireless Mouse", 9.99, 50));
+        products.get(0).setDescription("High-precision wireless mouse with ergonomic design");
+        products.get(0).setCategory("Electronics");
+        products.get(0).setRating(4.5);
+        products.get(0).setImage("GarudaHawk.jpg");
+
+        products.add(new Product("000002", "Casio Watch", 29.50, 30));
+        products.get(1).setDescription("Classic analog watch with leather strap");
+        products.get(1).setCategory("Fashion");
+        products.get(1).setRating(4.2);
+        products.get(1).setImage("Casio Watch.jpg");
+
+        products.add(new Product("000003", "iPhone 16", 749.00, 15));
+        products.get(2).setDescription("Latest iPhone with advanced camera system");
+        products.get(2).setCategory("Electronics");
+        products.get(2).setRating(4.8);
+        products.get(2).setImage("Iphone 16.jpg");
+
+        products.add(new Product("000004", "Varsity Jacket", 4.49, 100));
+        products.get(3).setDescription("Classic college-style varsity jacket");
+        products.get(3).setCategory("Fashion");
+        products.get(3).setRating(4.0);
+        products.get(3).setImage("NU jacket.jpg");
+
+        products.add(new Product("000005", "Apple Earpods", 299.00, 25));
+        products.get(4).setDescription("Premium wireless earbuds with noise cancellation");
+        products.get(4).setCategory("Electronics");
+        products.get(4).setRating(4.7);
+        products.get(4).setImage("Airpods.jpg");
+
+        products.add(new Product("000006", "Crocs", 49.00, 60));
+        products.get(5).setDescription("Comfortable and lightweight casual footwear");
+        products.get(5).setCategory("Footwear");
+        products.get(5).setRating(4.1);
+        products.get(5).setImage("Crocs.jpg");
+
+        products.add(new Product("000007", "Adidas Samba", 59.00, 40));
+        products.get(6).setDescription("Classic soccer-inspired casual sneakers");
+        products.get(6).setCategory("Footwear");
+        products.get(6).setRating(4.3);
+        products.get(6).setImage("Adidas_Samba-removebg-preview.png");
+
+        products.add(new Product("000008", "Fstoppers Shoulder Bag", 19.99, 35));
+        products.get(7).setDescription("Professional camera bag for photographers");
+        products.get(7).setCategory("Accessories");
+        products.get(7).setRating(4.4);
+        products.get(7).setImage("FstopperBag.jpg");
+
+        products.add(new Product("000009", "Sunglasses", 9.99, 80));
+        products.get(8).setDescription("UV protection sunglasses with polarized lenses");
+        products.get(8).setCategory("Accessories");
+        products.get(8).setRating(3.9);
+        products.get(8).setImage("Sunglass.jpg");
+
+        products.add(new Product("000010", "Thermos Flask", 29.50, 45));
+        products.get(9).setDescription("Insulated stainless steel water bottle");
+        products.get(9).setCategory("Home & Kitchen");
+        products.get(9).setRating(4.6);
+        products.get(9).setImage("ThermFlask.jpg");
+
+        products.add(new Product("000011", "Iconic Socks", 4.49, 120));
+        products.get(10).setDescription("Comfortable cotton blend socks");
+        products.get(10).setCategory("Clothing");
+        products.get(10).setRating(4.2);
+        products.get(10).setImage("Socks.jpg");
+
+        products.add(new Product("000012", "Asus Monitor", 749.00, 10));
+        products.get(11).setDescription("4K UHD gaming monitor with high refresh rate");
+        products.get(11).setCategory("Electronics");
+        products.get(11).setRating(4.7);
+        products.get(11).setImage("AsusMonitor.jpg");
+
+        products.add(new Product("000013", "Kingston NVME SSD", 299.00, 20));
+        products.get(12).setDescription("High-speed NVMe solid state drive");
+        products.get(12).setCategory("Electronics");
+        products.get(12).setRating(4.5);
+        products.get(12).setImage("KingstonSSD.jpg");
+
+        products.add(new Product("000014", "PC Case", 49.00, 30));
+        products.get(13).setDescription("ATX mid-tower gaming computer case");
+        products.get(13).setCategory("Electronics");
+        products.get(13).setRating(4.0);
+        products.get(13).setImage("PcCase.jpg");
+
+        return products;
+    }
+    
     /**
      * Searches for products by name (case-insensitive)
      * @param searchTerm The search term to look for in product names
@@ -39,24 +130,19 @@ public class ShoppingService {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return getProducts();
         }
-        
+
         String term = searchTerm.toLowerCase().trim();
         return getProducts().stream()
             .filter(p -> p.getName().toLowerCase().contains(term))
             .collect(Collectors.toList());
     }
-    
-    /**
-     * Gets all products
-     * @return List of all products
-     */
     public List<Product> getProducts() {
-        try {
-            return fileHandler.loadProducts();
-        } catch (IOException e) {
-            System.err.println("Error loading products: " + e.getMessage());
-            return new ArrayList<>();
+        List<Product> products = fileHandler.loadProducts();
+        if (products.isEmpty()) {
+            // Return hardcoded products if no file data exists
+            return getHardcodedProducts();
         }
+        return products;
     }
 
     public Product getProductById(String productId) { 
@@ -116,7 +202,7 @@ public class ShoppingService {
                     if (parts.length == 5 && CART_STATUS.equals(parts[3])) {
                         String username = parts[1];
                         String[] items = parts[4].split(";");
-                        List<OrderItem> cartItems = tempCarts.computeIfAbsent(username, k -> new ArrayList<>());
+                        List<OrderItem> cartItems = tempCarts.computeIfAbsent(username, _ -> new ArrayList<>());
                         
                         for (String item : items) {
                             if (item == null || item.trim().isEmpty()) continue;
@@ -248,7 +334,7 @@ public class ShoppingService {
                 return false;
             }
             
-            List<OrderItem> userCart = userCarts.computeIfAbsent(username, k -> new ArrayList<>());
+            List<OrderItem> userCart = userCarts.computeIfAbsent(username, _ -> new ArrayList<>());
             
             // Check if cart is full and item not already in cart
             Optional<OrderItem> existingItem = userCart.stream()
@@ -423,48 +509,13 @@ public class ShoppingService {
      * @param password The password to verify
      * @return true if authentication is successful, false otherwise
      */
-    public boolean authenticateUser(String username, String password) {
-        if (username == null || password == null) {
-            return false;
-        }
-        try {
-            return fileHandler.authenticateUser(username.trim(), password);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error authenticating user: " + username, e);
-            return false;
-        }
+    public void processCheckout(String orderLine) throws Exception {
+        // 1. Save the order to the orders.txt file
+        fileHandler.saveOrder(orderLine);
+
+        // 2. Clear the cart file (using 'guest' as the user ID for consistency)
+        fileHandler.removeCartForUser("guest");
     }
-    
-    /**
-     * Registers a new user
-     * @param username The username (must be unique)
-     * @param password The password (will be hashed)
-     * @param email The user's email address
-     * @return true if registration was successful, false otherwise
-     */
-    public boolean registerUser(String username, String password, String email) {
-        if (username == null || username.trim().isEmpty() || 
-            password == null || password.trim().isEmpty() ||
-            email == null || email.trim().isEmpty() || !email.contains("@")) {
-            logger.warning("Invalid registration parameters");
-            return false;
-        }
-        
-        try {
-            boolean success = fileHandler.registerUser(username.trim(), password, email.trim());
-            if (success) {
-                logger.info("User registered successfully: " + username);
-            } else {
-                logger.warning("Failed to register user (username may be taken): " + username);
-            }
-            return success;
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error registering user: " + username, e);
-            return false;
-        }
-    }
-    
-    // Order and Cart Management
     public static class OrderResult {
         public final String orderId;
         public final String status;
@@ -526,5 +577,45 @@ public class ShoppingService {
         } finally {
             orderLock.unlock();
         }
+    }
+
+    /**
+     * Authenticates a user with the given username and password.
+     * @param username The username to authenticate
+     * @param password The password to verify
+     * @return true if authentication is successful, false otherwise
+     */
+    public boolean authenticateUser(String username, String password) {
+        try {
+            return fileHandler.authenticateUser(username, password) != null;
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error authenticating user: " + username, e);
+            return false;
+        }
+    }
+
+    /**
+     * Registers a new user.
+     * @param username The username (must be unique)
+     * @param password The password
+     * @param email The user's email address
+     * @return true if registration was successful, false otherwise
+     */
+    public boolean registerUser(String username, String password, String email) {
+        try {
+            return fileHandler.registerUser(username, password, email);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error registering user: " + username, e);
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves orders for a specific user.
+     * @param username The username to get orders for
+     * @return List of orders for the user
+     */
+    public List<Order> getUserOrders(String username) {
+        return fileHandler.getUserOrders(username);
     }
 }

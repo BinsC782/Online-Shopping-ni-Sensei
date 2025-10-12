@@ -32,23 +32,23 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load products from the backend
 async function loadProducts() {
     const productsContainer = document.getElementById('products-container');
-    
+
     try {
         // Show loading state
         productsContainer.innerHTML = '<div class="loading">Loading products...</div>';
-        
-        // Fetch products from the backend
+
+        // Fetch products from the backend using the API service
         const products = await ApiService.getProducts();
-        
+
         if (products.length === 0) {
             productsContainer.innerHTML = '<div class="no-products">No products available</div>';
             return;
         }
 
-        // Render products
+        // Render products dynamically
         productsContainer.innerHTML = products.map(product => `
             <div class="product-card" data-id="${product.id}">
-                <img src="${product.imageUrl || 'Photos/default-product.png'}" alt="${product.name}">
+                <img src="Photos/${product.image}" alt="${product.name}">
                 <div class="product-info">
                     <h3>${product.name}</h3>
                     <p>$${product.price.toFixed(2)}</p>
@@ -66,7 +66,7 @@ async function loadProducts() {
         console.error('Error loading products:', error);
         productsContainer.innerHTML = `
             <div class="error">
-                Failed to load products. 
+                Failed to load products.
                 <button onclick="location.reload()">Try Again</button>
             </div>`;
     }

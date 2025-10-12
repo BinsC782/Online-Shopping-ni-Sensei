@@ -4,17 +4,12 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class ApiResponseTest {
@@ -22,23 +17,15 @@ class ApiResponseTest {
     private HttpExchange exchange;
     private Headers headers;
     private OutputStream outputStream;
-    private ArgumentCaptor<String> headerCaptor;
-    private ArgumentCaptor<byte[]> responseCaptor;
 
     @BeforeEach
     void setUp() {
         exchange = mock(HttpExchange.class);
         headers = mock(Headers.class);
         outputStream = new ByteArrayOutputStream();
-        headerCaptor = ArgumentCaptor.forClass(String.class);
-        responseCaptor = ArgumentCaptor.forClass(byte[].class);
 
         when(exchange.getResponseHeaders()).thenReturn(headers);
-        try {
-            when(exchange.getResponseBody()).thenReturn(outputStream);
-        } catch (IOException e) {
-            fail("Failed to set up mock response body", e);
-        }
+        when(exchange.getResponseBody()).thenReturn(outputStream);
     }
 
     @Test
@@ -124,7 +111,7 @@ class ApiResponseTest {
         verify(headers).set(eq("Content-Type"), eq("application/json; charset=utf-8"));
 
         // Verify response body
-        String response = outputStream.toString(StandardCharsets.UTF_8);
+        String response = outputStream.toString();
         assertTrue(response.contains(String.format("\"success\": %b", expectedStatus < 400)));
         assertTrue(response.contains(String.format("\"message\": \"%s\"", expectedMessage)));
         

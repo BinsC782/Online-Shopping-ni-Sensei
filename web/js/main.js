@@ -1,5 +1,12 @@
-// Cart state management
-let cart = [];
+/**
+ * Main JavaScript file for the shopping application
+ * Contains core functionality and API service definitions
+ */
+
+// ApiService is already loaded via script tag, no need to import
+
+// Global variable to store products for click handlers
+let globalProducts = [];
 
 // Initialize cart from localStorage
 function getCart() {
@@ -16,6 +23,7 @@ function getCart() {
     }
 }
 
+
 // Save cart to localStorage
 function saveCart() {
     try {
@@ -31,6 +39,7 @@ function saveCart() {
         console.error('Error saving cart:', error);
     }
 }
+
 
 // Add item to cart or update quantity if exists
 function addToCart(product) {
@@ -60,6 +69,7 @@ function addToCart(product) {
     }
 }
 
+
 // Update item quantity
 function updateQuantity(id, newQuantity) {
     try {
@@ -80,6 +90,7 @@ function updateQuantity(id, newQuantity) {
     }
 }
 
+
 // Remove item from cart
 function removeItem(id) {
     try {
@@ -96,6 +107,7 @@ function removeItem(id) {
     }
 }
 
+
 // Toggle item checked state
 function toggleChecked(id) {
     const item = cart.find(item => item.id === id);
@@ -105,15 +117,18 @@ function toggleChecked(id) {
     }
 }
 
+
 // Calculate cart total
 function getTotal() {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 }
 
+
 // Get total number of items in cart
 function getCartCount() {
     return cart.reduce((count, item) => count + item.quantity, 0);
 }
+
 
 // Update cart badge in header
 function updateCartBadge() {
@@ -125,6 +140,7 @@ function updateCartBadge() {
     }
 }
 
+
 // Display cart items
 function displayCart() {
     const cartItems = document.getElementById('cart-items');
@@ -133,8 +149,10 @@ function displayCart() {
     
     if (!cartItems) return;
 
+
     // Clear existing items
     cartItems.innerHTML = '';
+
 
     if (cart.length === 0) {
         if (emptyCart) emptyCart.style.display = 'block';
@@ -142,9 +160,11 @@ function displayCart() {
         return;
     }
 
+
     // Hide empty cart message
     if (emptyCart) emptyCart.style.display = 'none';
     if (cartFooter) cartFooter.style.display = 'block';
+
 
     // Add each item to the cart
     cart.forEach(item => {
@@ -174,8 +194,10 @@ function displayCart() {
         cartItems.appendChild(itemElement);
     });
 
+
     updateTotal();
 }
+
 
 // Show notification
 function showNotification(message, type = 'success') {
@@ -192,177 +214,25 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// DO NOT EVER REMOVE, ONLY MODIFY - Core modal initialization and event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded, initializing...');
-    
-    // Initialize cart
-    getCart();
-    updateCartBadge();
-    
-    // Get all product cards
-    const productCards = document.querySelectorAll('.product-card');
-    console.log(`Found ${productCards.length} product cards`);
-    
-    // Get modal elements
-    const modal = document.getElementById('product-modal');
-    if (!modal) console.error('Modal element not found!');
-    
-    const closeBtn = document.querySelector('.product-modal .close-btn');
-    const modalImage = document.getElementById('modal-image');
-    const modalTitle = document.getElementById('modal-title');
-    const modalPrice = document.getElementById('modal-price');
-    const modalRating = document.getElementById('modal-rating');
-    const modalAddToCart = document.getElementById('modal-add-to-cart');
-    const modalBuyNow = document.getElementById('modal-buy-now');
-    
-    // Initialize quantity controls
-    const qtyMinus = document.querySelector('.qty-minus');
-    const qtyPlus = document.querySelector('.qty-plus');
-    const qtyValue = document.querySelector('.qty-value');
-    let currentQty = 1;
-    let currentProduct = null;
 
-    // Quantity control handlers
-    if (qtyMinus) {
-        qtyMinus.onclick = function() {
-            if (currentQty > 1) {
-                currentQty--;
-                qtyValue.textContent = currentQty;
-            }
-        };
+// Initialize application when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Shopping application initialized');
+
+
+    // Set default user session if not exists
+    if (!localStorage.getItem('token')) {
+        localStorage.setItem('token', 'temporary-session-token');
+        localStorage.setItem('username', 'demo-user');
     }
 
-    if (qtyPlus) {
-        qtyPlus.onclick = function() {
-            currentQty++;
-            qtyValue.textContent = currentQty;
-        };
-    }
 
-    // Handle product card clicks
-    document.addEventListener('click', function(event) {
-        // Find the closest product card element from the click target
-        const card = event.target.closest('.product-card');
-        if (!card) return;
-
-        try {
-            const img = card.querySelector('img');
-            const titleEl = card.querySelector('h3');
-            const priceEl = card.querySelector('p');
-            const ratingEl = card.querySelector('span');
-            
-            if (!img || !titleEl || !priceEl || !ratingEl) {
-                console.error('Missing required elements in product card');
-                return;
-            }
-
-            const title = titleEl.textContent.trim();
-            const priceText = priceEl.textContent.trim();
-            const rating = ratingEl.textContent.trim();
-            const price = parseFloat(priceText.replace(/[^0-9.-]+/g, ''));
-            const id = title.toLowerCase().replace(/\s+/g, '-');
-
-            console.log('Opening product:', { title, price, id });
-
-            // Update modal content
-            if (modalImage) modalImage.src = img.src || '';
-            if (modalImage) modalImage.alt = title;
-            if (modalTitle) modalTitle.textContent = title;
-            if (modalPrice) modalPrice.textContent = priceText;
-            if (modalRating) modalRating.textContent = rating;
-      
-            // Reset quantity
-            currentQty = 1;
-            if (qtyValue) qtyValue.textContent = currentQty;
-            
-            // Store current product info
-            currentProduct = { 
-                id, 
-                name: title, 
-                price, 
-                image: img.src,
-                rating: rating
-            };
-
-            // Show modal
-            if (modal) {
-                modal.style.display = 'block';
-                console.log('Modal should be visible now');
-            } else {
-                console.error('Modal element not found');
-            }
-        } catch (error) {
-            console.error('Error handling product card click:', error);
-        }
+    // Call loadProducts if we're on the homepage
+    loadProducts().catch(error => {
+        console.error('Error in loadProducts:', error);
     });
-
-    // Add to cart handler
-    if (modalAddToCart) {
-        modalAddToCart.addEventListener('click', function() {
-            if (!currentProduct) {
-                console.error('No product selected');
-                return;
-            }
-            
-            console.log(`Adding ${currentQty} ${currentProduct.name} to cart`);
-            
-            for (let i = 0; i < currentQty; i++) {
-                addToCart({...currentProduct});
-            }
-            
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        });
-    } else {
-        console.error('Add to cart button not found');
-    }
-
-    // Buy now handler
-    if (modalBuyNow) {
-        modalBuyNow.addEventListener('click', function() {
-            if (!currentProduct) {
-                console.error('No product selected');
-                return;
-            }
-            
-            console.log(`Buying ${currentQty} ${currentProduct.name} now`);
-            
-            // Add to cart first
-            for (let i = 0; i < currentQty; i++) {
-                addToCart({...currentProduct});
-            }
-            
-            // Then redirect to checkout
-            window.location.href = 'Viewing cart.html';
-        });
-    } else {
-        console.error('Buy now button not found');
-    }
-
-    // Close modal when clicking the close button
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            if (modal) {
-                modal.style.display = 'none';
-                console.log('Modal closed');
-            }
-        });
-    } else {
-        console.error('Close button not found');
-    }
-
-    // Close modal when clicking outside
-    if (modal) {
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-                console.log('Modal closed (outside click)');
-            }
-        });
-    }
 });
+
 
 // Function to save order to a text file
 async function saveOrderToFile(orderData) {
@@ -371,6 +241,7 @@ async function saveOrderToFile(orderData) {
         const orderString = `Order ${new Date().toISOString()}:\n` +
             `Items: ${orderData.items.map(item => `${item.quantity}x ${item.name}`).join(', ')}\n` +
             `Total: $${orderData.total.toFixed(2)}\n\n`;
+
 
         // In a real app, you would send this to your backend to save to a file
         // For now, we'll just log it to the console
@@ -403,6 +274,7 @@ async function saveOrderToFile(orderData) {
     }
 }
 
+
 async function handleApiRequest(url, options = {}) {
     try {
         const response = await fetch(url, {
@@ -414,11 +286,13 @@ async function handleApiRequest(url, options = {}) {
             }
         });
 
+
         const data = await response.json();
         
         if (!response.ok) {
             throw new Error(data.error || 'Request failed');
         }
+
 
         return data;
     } catch (error) {
@@ -427,6 +301,7 @@ async function handleApiRequest(url, options = {}) {
         throw error;
     }
 }
+
 
 // DO NOT EVER REMOVE, ONLY MODIFY - Core cart total calculation and UI update
 function updateTotal() {
@@ -474,69 +349,216 @@ function updateTotal() {
     }
 }
 
-async function displayProducts() {
+
+async function loadProducts() {
     const productsContainer = document.getElementById('products-container');
-    if (!productsContainer) return;
+
+    // Check if we're on a page with products container
+    if (!productsContainer) {
+        console.log('Not on product page, skipping product loading');
+        return;
+    }
 
     try {
         // Show loading state
         productsContainer.innerHTML = '<div class="loading">Loading products...</div>';
-        
-        const products = await ApiService.getProducts();
-        
+
+        // Fetch products from the mock API
+        const products = await ApiService.fetchProducts();
+
         if (products.length === 0) {
             productsContainer.innerHTML = '<div class="no-products">No products available</div>';
             return;
         }
 
-        productsContainer.innerHTML = products.map(product => `
-            <div class="product-card" 
-                 data-id="${product.id}" 
-                 data-category="${product.category}">
-                <img src="${product.imageUrl || 'placeholder.jpg'}" alt="${product.name}">
-                <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <p>$${product.price.toFixed(2)}</p>
-                    <span>${'★'.repeat(Math.round(product.rating))}${'☆'.repeat(5-Math.round(product.rating))}</span>
-                    ${product.stock > 0 ? 
-                        `<button class="add-to-cart" data-id="${product.id}">
-                            Add to Cart
-                        </button>` : 
-                        '<button class="out-of-stock" disabled>Out of Stock</button>'}
-                    ${product.stock < 10 && product.stock > 0 ? 
-                        `<div class="low-stock">Only ${product.stock} left!</div>` : ''}
-                </div>
-            </div>
-        `).join('');
+        // Store products globally for click handlers
+        globalProducts = products;
 
-        // Add event listeners
-        document.querySelectorAll('.add-to-cart').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                const productId = e.target.dataset.id;
-                try {
-                    await ApiService.addToCart(productId, 1);
-                    showNotification('Added to cart!', 'success');
-                    updateCartBadge();
-                } catch (error) {
-                    showNotification(error.message || 'Failed to add to cart', 'error');
+        // Clear the container
+        productsContainer.innerHTML = '';
+
+        // Get the template
+        const template = document.getElementById('product-card-template');
+        if (!template) {
+            throw new Error('Product card template not found');
+        }
+
+        // Render each product using the template
+        products.forEach(product => {
+            // Clone the template
+            const productCard = template.content.cloneNode(true);
+
+            // Set the product ID
+            const cardElement = productCard.querySelector('.product-card');
+            cardElement.dataset.productId = product.id;
+
+            // Populate the card with product data
+            const img = productCard.querySelector('img');
+            img.src = product.image ? `Photos/${product.image}` : 'Photos/placeholder.jpg';
+            img.alt = product.name;
+
+            const title = productCard.querySelector('.product-title');
+            title.textContent = product.name;
+
+            const price = productCard.querySelector('.price');
+            price.textContent = `$${product.price.toFixed(2)}`;
+
+            // Generate star rating (use rating from backend if available, otherwise default)
+            const ratingContainer = productCard.querySelector('.rating');
+            const ratingText = productCard.querySelector('.sr-only');
+            const productRating = product.rating || 4.0; // Use backend rating or default
+            const fullStars = Math.floor(productRating);
+            const hasHalfStar = productRating % 1 >= 0.5;
+
+            // Clear existing stars
+            ratingContainer.innerHTML = '';
+
+            // Add full stars
+            for (let i = 0; i < fullStars; i++) {
+                const star = document.createElement('span');
+                star.className = 'star filled';
+                star.textContent = '★';
+                star.setAttribute('aria-hidden', 'true');
+                ratingContainer.appendChild(star);
+            }
+
+            // Add half star if needed
+            if (hasHalfStar) {
+                const halfStar = document.createElement('span');
+                halfStar.className = 'star half';
+                halfStar.textContent = '★';
+                halfStar.setAttribute('aria-hidden', 'true');
+                ratingContainer.appendChild(halfStar);
+            }
+
+            // Add empty stars
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                const emptyStar = document.createElement('span');
+                emptyStar.className = 'star';
+                emptyStar.textContent = '☆';
+                emptyStar.setAttribute('aria-hidden', 'true');
+                ratingContainer.appendChild(emptyStar);
+            }
+
+            // Set the screen reader text
+            ratingText.textContent = `${productRating} out of 5 stars`;
+
+            // Append the card to the container
+            productsContainer.appendChild(productCard);
+        });
+
+        // Add event delegation for product card clicks
+        productsContainer.addEventListener('click', (e) => {
+            const card = e.target.closest('.product-card');
+            if (card) {
+                e.preventDefault();
+                const productId = card.dataset.productId;
+                const product = globalProducts.find(p => p.id === productId);
+                if (product) {
+                    showProductDetails(product);
                 }
-            });
+            }
         });
 
     } catch (error) {
-        console.error('Error displaying products:', error);
+        console.error('Error loading products:', error);
         productsContainer.innerHTML = `
             <div class="error">
-                Failed to load products. 
-                <button onclick="location.reload()">Try Again</button>
+                Failed to load products.
+                <button onclick="loadProducts()">Try Again</button>
             </div>`;
     }
+}
+
+// Show product details in modal
+function showProductDetails(product) {
+    const modal = document.getElementById('product-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalTitle = document.getElementById('modal-title');
+    const modalRating = document.getElementById('modal-rating');
+    const modalPrice = document.getElementById('modal-price');
+    const modalProductId = document.getElementById('modal-product-id');
+
+    if (!modal) return;
+
+    // Populate modal with product data
+    modalImage.src = product.image ? `Photos/${product.image}` : 'Photos/placeholder.jpg';
+    modalImage.alt = product.name;
+    modalTitle.textContent = product.name;
+    modalPrice.textContent = `$${product.price.toFixed(2)}`;
+    modalProductId.textContent = `ID: ${product.id}`;
+
+    // Generate star rating for modal (use rating from backend if available, otherwise default)
+    modalRating.innerHTML = '';
+    const modalRatingValue = product.rating || 4.0; // Use backend rating or default
+    const modalFullStars = Math.floor(modalRatingValue);
+    const modalHasHalfStar = modalRatingValue % 1 >= 0.5;
+
+    // Add full stars
+    for (let i = 0; i < modalFullStars; i++) {
+        const star = document.createElement('span');
+        star.textContent = '★';
+        modalRating.appendChild(star);
+    }
+
+    // Add half star if needed
+    if (modalHasHalfStar) {
+        const halfStar = document.createElement('span');
+        halfStar.textContent = '★';
+        halfStar.style.opacity = '0.5';
+        modalRating.appendChild(halfStar);
+    }
+
+    // Add empty stars
+    const modalEmptyStars = 5 - modalFullStars - (modalHasHalfStar ? 1 : 0);
+    for (let i = 0; i < modalEmptyStars; i++) {
+        const emptyStar = document.createElement('span');
+        emptyStar.textContent = '☆';
+        modalRating.appendChild(emptyStar);
+    }
+
+    // Set up modal buttons
+    const addToCartBtn = document.getElementById('modal-add-to-cart');
+    const buyNowBtn = document.getElementById('modal-buy-now');
+
+    // Update button event listeners
+    addToCartBtn.onclick = () => {
+        addToCart(product);
+        modal.classList.remove('show');
+    };
+
+    buyNowBtn.onclick = () => {
+        addToCart(product);
+        modal.classList.remove('show');
+        // Redirect to cart page
+        window.location.href = 'Viewing cart.html';
+    };
+
+    // Show modal with animation
+    modal.classList.add('show');
+
+    // Set up close functionality with animation
+    const closeBtn = modal.querySelector('.close-btn');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.classList.remove('show');
+        };
+    }
+
+    // Close on outside click with animation
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    };
 }
 
 // Generate order ID in the format: ORD + timestamp
 function generateOrderId() {
     return 'ORD' + Date.now();
 }
+
 
 // Handle checkout process
 function handleCheckout() {
@@ -571,6 +593,7 @@ function handleCheckout() {
     cart = [];
     saveCart();
 }
+
 
 // Save order to server
 async function saveOrderToServer(orderId, total) {
@@ -623,7 +646,7 @@ async function saveOrderToServer(orderId, total) {
                 status: 'Pending',
                 total: total,
                 timestamp: new Date().toISOString(),
-                rawLine: `${orderId},${currentUser},${cart.map(item => item.name).join(';')},Pending`
+                rawLine: `${orderId},${currentUser},${cart.map(item => item.name).join(';')},Pending` 
             });
             
             localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
@@ -646,6 +669,7 @@ async function saveOrderToServer(orderId, total) {
 function closeCart() {
     window.location.href = 'index.html';
 }
+
 
 // Initialize event listeners for cart page
 document.addEventListener('DOMContentLoaded', function() {

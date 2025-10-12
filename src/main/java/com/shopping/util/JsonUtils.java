@@ -1,68 +1,66 @@
 package com.shopping.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.shopping.model.Product;
 import java.util.List;
 
+/**
+ * Utility class for JSON serialization and deserialization using Jackson
+ */
 public class JsonUtils {
-    
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * Convert a list of products to JSON array string
      * @param products List of products to convert
      * @return JSON array string
+     * @throws JsonProcessingException if serialization fails
      */
-    public static String toJson(List<Product> products) {
+    public static String toJson(List<Product> products) throws JsonProcessingException {
         if (products == null || products.isEmpty()) {
             return "[]";
         }
-        
-        StringBuilder json = new StringBuilder("[");
-        for (int i = 0; i < products.size(); i++) {
-            Product p = products.get(i);
-            json.append(toJson(p));
-            if (i < products.size() - 1) {
-                json.append(",");
-            }
-        }
-        json.append("]");
-        return json.toString();
+        return objectMapper.writeValueAsString(products);
     }
-    
+
     /**
      * Convert a single product to JSON object string
      * @param product Product to convert
      * @return JSON object string
+     * @throws JsonProcessingException if serialization fails
      */
-    public static String toJson(Product product) {
+    public static String toJson(Product product) throws JsonProcessingException {
         if (product == null) {
             return "{}";
         }
-        
-        return String.format(
-            "{\"id\":\"%s\",\"name\":\"%s\",\"price\":%.2f,\"description\":\"%s\",\"imageUrl\":\"%s\",\"category\":\"%s\"}",
-            escapeJson(product.getId()),
-            escapeJson(product.getName()),
-            product.getPrice(),
-            escapeJson(product.getDescription()),
-            escapeJson(product.getImage() != null ? product.getImage() : ""),
-            escapeJson(product.getCategory())
-        );
+        return objectMapper.writeValueAsString(product);
     }
-    
+
     /**
-     * Escape special characters in JSON strings
-     * @param input String to escape
-     * @return Escaped string
+     * Convert a JSON string back to a Product object
+     * @param json JSON string to deserialize
+     * @return Product object
+     * @throws JsonProcessingException if deserialization fails
      */
-    private static String escapeJson(String input) {
-        if (input == null) {
-            return "";
+    public static Product fromJson(String json, Class<Product> clazz) throws JsonProcessingException {
+        if (json == null || json.trim().isEmpty()) {
+            return null;
         }
-        return input.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\b", "\\b")
-                  .replace("\f", "\\f")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
+        return objectMapper.readValue(json, clazz);
+    }
+
+    /**
+     * Convert a JSON string back to a list of Product objects
+     * @param json JSON string to deserialize
+     * @return List of Product objects
+     * @throws JsonProcessingException if deserialization fails
+     */
+    public static List<Product> fromJsonList(String json) throws JsonProcessingException {
+        if (json == null || json.trim().isEmpty()) {
+            return List.of();
+        }
+        return objectMapper.readValue(json, objectMapper.getTypeFactory().constructCollectionType(List.class, Product.class));
     }
 }

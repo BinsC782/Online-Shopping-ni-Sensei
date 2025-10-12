@@ -1,44 +1,42 @@
 @echo off
-setlocal
+title Online Shopping Cart - Server
+set "SERVER_PORT=8080"
+set "SERVER_URL=http://localhost:%SERVER_PORT%"
 
-echo ===================================
-echo  Online Shopping App - Build & Run
-echo ===================================
+:: Change to the script's directory
+cd /d "%~dp0"
 
-:: Set up environment
-set SRC=src\main\java
-set BIN=target\classes
-set LIBS=lib\*
-
-:: Create target directory if it doesn't exist
-if not exist "%BIN%" mkdir "%BIN%"
-
-echo Compiling Java source files...
-
-:: Compile all Java files
-javac -d "%BIN%" -cp "%LIBS%" "%SRC%\com\shopping\*.java"
+:: Build the application with Maven first
+echo Building application...
+call mvn clean package -q
 
 if errorlevel 1 (
-    echo.
-    echo Compilation failed. Please check the errors above.
+    echo Build failed! Please check for compilation errors.
     pause
     exit /b 1
 )
 
+:: Start the server using the JAR file
+echo Starting server...
+start "Shopping Cart Server" java -jar "target\online-shopping-app-1.0.0.jar"
+
+:: Wait for the server to start
+echo Waiting for server to initialize...
+timeout /t 5 >nul
+
+:: Open the browser
+echo Opening browser...
+start "" "%SERVER_URL%"
+
 echo.
-echo Compilation successful! Starting server...
+echo ==================================================
+echo Server started successfully!
+echo Access your application at: %SERVER_URL%
+echo ==================================================
+echo.
+echo Press Ctrl+C in the server window to stop the server
+echo Or close this window to stop everything
+echo.
 
-echo ===================================
-echo  Server running at http://localhost:8080
-echo  Press Ctrl+C to stop the server
-echo ===================================
-
-java -cp "%BIN%;%LIBS%" com.shopping.ServerMain
-
-if errorlevel 1 (
-    echo.
-    echo Server failed to start. Check if port 8080 is available.
-    pause
-)
-
-endlocal
+:: Keep this window open
+pause >nul
